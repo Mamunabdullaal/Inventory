@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,71 +8,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* CSS Variables for theming */
-        :root {
-            --bg-body: #f0f4f8; /* Light blue-gray background */
-            --bg-container: #ffffff;
-            --bg-section: #f8fafc; /* For input groups and saved plans list */
-            --bg-planning-section: #e0f2fe; /* Light blue for planning section */
-            --text-primary: #1e40af; /* Dark blue for titles/important text */
-            --text-secondary: #334155; /* Medium gray for labels/general text */
-            --border-color: #cbd5e1;
-            --input-border-focus: #3b82f6;
-            --btn-primary-bg: #3b82f6;
-            --btn-primary-hover: #2563eb;
-            --btn-secondary-bg: #64748b;
-            --btn-secondary-hover: #475569;
-            --total-cost-display-bg: #e0f2fe;
-            --total-cost-display-text: #1e40af;
-            --yellow-section-bg: #fffbe6; /* Light yellow */
-            --yellow-section-border: #fef08a;
-            --yellow-section-text: #b45309; /* Darker yellow/orange for text */
-            --red-text: #ef4444;
-            --red-hover-text: #dc2626;
-            --green-text: #16a34a;
-            --gray-subtext: #475569;
-            --blue-subtext: #3b82f6;
-            --blue-hover-subtext: #2563eb;
-        }
-
-        [data-theme="dark"] {
-            --bg-body: #1a202c; /* Dark background */
-            --bg-container: #2d3748; /* Darker container */
-            --bg-section: #4a5568; /* Darker sections */
-            --bg-planning-section: #334155; /* Dark blue for planning section */
-            --text-primary: #e2e8f0; /* Light gray for titles/important text */
-            --text-secondary: #cbd5e1; /* Lighter gray for labels/general text */
-            --border-color: #718096;
-            --input-border-focus: #63b3ed;
-            --btn-primary-bg: #4299e1;
-            --btn-primary-hover: #3182ce;
-            --btn-secondary-bg: #718096;
-            --btn-secondary-hover: #a0aec0;
-            --total-cost-display-bg: #2b6cb0;
-            --total-cost-display-text: #e2e8f0;
-            --yellow-section-bg: #4a5568; /* Darker yellow for dark theme */
-            --yellow-section-border: #718096;
-            --yellow-section-text: #f6ad55; /* Orange for text */
-            --red-text: #fc8181;
-            --red-hover-text: #e53e3e;
-            --green-text: #68d391;
-            --gray-subtext: #a0aec0;
-            --blue-subtext: #63b3ed;
-            --blue-hover-subtext: #4299e1;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
+            background-color: #f0f4f8; /* Light blue-gray background */
             display: flex;
             justify-content: center;
             align-items: flex-start; /* Align to top */
             min-height: 100vh;
             padding: 20px;
-            transition: background-color 0.3s ease;
         }
         .container {
-            background-color: var(--bg-container);
+            background-color: #ffffff;
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -81,220 +27,238 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: 30px;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
         @media (min-width: 1024px) {
             .container {
                 grid-template-columns: 2fr 1fr; /* Two columns on large screens */
             }
         }
-        /* Adjusted colors for specific elements */
-        .col-span-2.p-6.bg-blue-50 { /* Left planning column */
-            background-color: var(--bg-planning-section);
-            color: var(--text-secondary);
-            transition: background-color 0.3s ease;
-        }
-        .col-span-1.p-6.bg-gray-50 { /* Right insights column */
-            background-color: var(--bg-section);
-            color: var(--text-secondary);
-            transition: background-color 0.3s ease;
-        }
-
-        h2.text-3xl.font-bold {
-            color: var(--text-primary);
-            transition: color 0.3s ease;
-        }
-        h3.text-xl.font-semibold {
-            color: var(--text-primary);
-            transition: color 0.3s ease;
-        }
-        h4.text-md.font-semibold {
-            color: var(--text-secondary);
-            transition: color 0.3s ease;
-        }
-
         .input-group label {
             font-weight: 600;
-            color: var(--text-secondary);
+            color: #334155;
             margin-bottom: 8px;
             display: block;
-            transition: color 0.3s ease;
         }
         .input-group input[type="date"],
         .input-group input[type="text"],
-        .input-group input[type="number"],
-        .ingredient-row input, .ingredient-row select {
-            border: 1px solid var(--border-color);
+        .input-group input[type="number"] {
+            border: 1px solid #cbd5e1;
             padding: 10px 15px;
             border-radius: 8px;
             width: 100%;
             box-sizing: border-box;
-            background-color: var(--bg-container); /* Input background */
-            color: var(--text-secondary); /* Input text color */
-            transition: border-color 0.2s, background-color 0.3s ease, color 0.3s ease;
+            transition: border-color 0.2s;
         }
         .input-group input:focus {
             outline: none;
-            border-color: var(--input-border-focus); /* Blue focus ring */
+            border-color: #3b82f6; /* Blue focus ring */
         }
         .btn {
             padding: 10px 20px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s, color 0.3s ease;
+            transition: background-color 0.2s, transform 0.1s;
         }
         .btn-primary {
-            background-color: var(--btn-primary-bg);
+            background-color: #3b82f6; /* Blue */
             color: white;
             border: none;
         }
         .btn-primary:hover {
-            background-color: var(--btn-primary-hover);
+            background-color: #2563eb; /* Darker blue */
             transform: translateY(-1px);
         }
         .btn-secondary {
-            background-color: var(--btn-secondary-bg);
+            background-color: #64748b; /* Gray */
             color: white;
             border: none;
         }
         .btn-secondary:hover {
-            background-color: var(--btn-secondary-hover);
+            background-color: #475569; /* Darker gray */
             transform: translateY(-1px);
         }
-        /* Specific button colors for Add Remaining Stock */
-        .btn.bg-yellow-500 {
-            background-color: #f59e0b; /* Tailwind yellow-500 */
-        }
-        .btn.bg-yellow-500:hover {
-            background-color: #d97706; /* Tailwind yellow-600 */
-        }
-
         .ingredient-row {
-            background-color: var(--bg-section);
-            border: 1px solid var(--border-color);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto; /* Item, Weight, Unit, Price, Delete */
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .ingredient-row input, .ingredient-row select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
         }
         .total-cost-display {
-            background-color: var(--total-cost-display-bg); /* Light blue */
-            color: var(--total-cost-display-text); /* Dark blue */
-            transition: background-color 0.3s ease, color 0.3s ease;
+            background-color: #e0f2fe; /* Light blue */
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e40af; /* Dark blue */
+            text-align: center;
         }
 
-        /* Message colors */
-        p.text-red-600 {
-            color: var(--red-text);
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        p.text-green-600 {
-            color: var(--green-text);
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
         }
-        p.text-gray-500 {
-            color: var(--gray-subtext);
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 450px; /* Default max-width for smaller modals */
+            text-align: center;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+            box-sizing: border-box; /* Ensure padding doesn't push width over max-width */
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1e40af;
+        }
+        .modal-content p {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            color: #475569;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .modal-buttons button {
+            flex: 1;
         }
 
-        /* Remaining Stock & Manual Add section */
-        .p-4.bg-yellow-50 {
-            background-color: var(--yellow-section-bg);
-            border-color: var(--yellow-section-border);
-            color: var(--yellow-section-text);
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-        }
-        h3.text-xl.font-semibold.text-yellow-800 {
-            color: var(--yellow-section-text);
-            transition: color 0.3s ease;
-        }
-        /* Adjusting text color for specific spans inside remainItem */
-        .flex.justify-between.items-center.p-3.bg-gray-100.rounded-lg.shadow-sm {
-            background-color: var(--bg-section);
-            color: var(--text-secondary);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .remainItem span.font-medium.text-gray-800 {
-            color: var(--text-primary);
-        }
-        .remainItem span.text-gray-600 {
-            color: var(--text-secondary);
-        }
-        
-        .delete-remain-btn, .remove-ingredient-btn, .remove-product-btn {
-            color: var(--red-text);
-            transition: color 0.3s ease;
-        }
-        .delete-remain-btn:hover, .remove-ingredient-btn:hover, .remove-product-btn:hover {
-            color: var(--red-hover-text);
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3b82f6; /* Blue */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none; /* Hidden by default */
         }
 
-        /* Product type range search section */
-        .p-4.bg-blue-50 {
-            background-color: var(--bg-planning-section);
-            border-color: var(--border-color);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        h3.text-xl.font-semibold.text-blue-800 {
-            color: var(--text-primary);
-            transition: color 0.3s ease;
+        .loading-spinner.active {
+            display: block;
+        }
+
+        /* Specific style for product details modal to be wider */
+        #productDetailsModal .modal-content {
+            max-width: 900px; /* Wider for table content */
+            text-align: left; /* Align text left for table */
+        }
+
+        #productDetailsModal table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #productDetailsModal th, #productDetailsModal td {
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+            vertical-align: top; /* Align content to top for multi-line cells */
+        }
+
+        #productDetailsModal th {
+            background-color: #f0f4f8;
+            font-weight: 600;
+        }
+
+        #productDetailsModal tbody tr:nth-child(even) {
+            background-color: #f8fafc;
         }
 
         .clickable-header {
-            color: var(--blue-subtext);
-            transition: color 0.3s ease;
+            cursor: pointer;
+            text-decoration: underline;
+            color: #3b82f6;
         }
         .clickable-header:hover {
-            color: var(--blue-hover-subtext);
-        }
-        .bg-blue-50.border.border-blue-200.p-2.rounded-md {
-            background-color: var(--bg-planning-section);
-            border-color: var(--border-color);
-            color: var(--text-secondary);
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-        }
-        
-        /* Modal specific styles */
-        .modal-content {
-            background-color: var(--bg-container);
-            color: var(--text-secondary);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .modal-content h3 {
-            color: var(--text-primary);
-        }
-        .modal-content p {
-            color: var(--text-secondary);
-        }
-        #productDetailsModal th {
-            background-color: var(--bg-section);
-            color: var(--text-primary);
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        #productDetailsModal tbody tr:nth-child(even) {
-            background-color: var(--bg-planning-section);
-            transition: background-color 0.3s ease;
-        }
-        .ingredient-list-item {
-            color: var(--text-secondary);
-            transition: color 0.3s ease;
+            color: #2563eb;
         }
 
         .saved-plan-item {
-            background-color: var(--bg-section);
-            border-color: var(--border-color);
-            color: var(--text-secondary);
-            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 8px;
         }
         .saved-plan-item span {
-            color: var(--text-secondary);
+            flex-grow: 1;
+            padding-right: 10px;
+            color: #334155;
+        }
+        .saved-plan-item .delete-plan-btn {
+            background: none;
+            border: none;
+            color: #ef4444; /* Red */
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.1s;
+        }
+        .saved-plan-item .delete-plan-btn:hover {
+            color: #dc2626; /* Darker red */
+            transform: scale(1.1);
         }
 
+        /* Styling for ingredient list within table cell */
+        .ingredient-list-item {
+            margin-bottom: 4px;
+            font-size: 0.9em;
+            color: #475569;
+        }
+        .ingredient-list-item:last-child {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-start justify-center min-h-screen p-5">
     <div class="container bg-white p-8 rounded-xl shadow-lg flex flex-col lg:grid lg:grid-cols-3 gap-8">
-
-        <!-- Theme Toggle Buttons -->
-        <div class="col-span-3 flex justify-center gap-4 mb-4">
-            <button id="lightThemeBtn" class="btn btn-secondary px-6 py-2">Light Theme</button>
-            <button id="darkThemeBtn" class="btn btn-secondary px-6 py-2">Dark Theme</button>
-        </div>
 
         <!-- Left Column: Weekly Planning -->
         <div class="col-span-2 p-6 bg-blue-50 rounded-xl shadow-inner">
@@ -416,7 +380,7 @@
                     <!-- Last week's product types will be listed here by JS -->
                 </div>
                 <button id="downloadPdfBtn" class="w-full btn btn-primary mt-6 py-3 px-6 rounded-lg text-lg hidden">
-                    পণ্যের বিস্তারিত তালিকা PDF ডাউনলোড করুন (Download Product Details PDF)
+                    শপিং লিস্ট PDF ডাউনলোড করুন (Download Shopping List PDF)
                 </button>
             </div>
         </div>
@@ -474,11 +438,6 @@
 
         const appId = firebaseConfig.projectId; // Use projectId as appId for consistency with Firestore path
 
-        // Global variables to store temporary data for modal interaction
-        let currentModalInput = null;
-        let currentRemainingDocId = null;
-        let currentRemainingData = null;
-
         // HTML elements
         const productsContainer = document.getElementById('productsContainer');
         const addProductBtn = document.getElementById('addProductBtn');
@@ -508,8 +467,8 @@
 
         const remainingModal = document.getElementById('remainingModal');
         const modalMessage = document.getElementById('modalMessage');
-        // modalYesBtn and modalNoBtn references are dynamic, retrieved within showCustomMessageBox or its callers
-        // as they are re-created each time confirm buttons are needed.
+        const modalYesBtn = document.getElementById('modalYesBtn');
+        const modalNoBtn = document.getElementById('modalNoBtn');
 
         const productDetailsModal = document.getElementById('productDetailsModal');
         const productDetailsTableContainer = document.getElementById('productDetailsTableContainer');
@@ -521,12 +480,7 @@
         const noSavedPlansMessage = document.getElementById('noSavedPlansMessage');
 
         let productCount = 0; // To keep track of product blocks
-        // Store the full, aggregated product data for the currently displayed range for PDF
-        let currentDetailedProductsForPdf = []; 
-
-        // Theme buttons
-        const lightThemeBtn = document.getElementById('lightThemeBtn');
-        const darkThemeBtn = document.getElementById('darkThemeBtn');
+        let currentProductRangeData = []; // Store the full product data for the currently displayed range for PDF
 
         // --- Firebase Initialization and Auth ---
         window.onload = async () => {
@@ -568,9 +522,6 @@
                 // Add initial product planning block
                 addProductBlock();
                 calculateTotalWeeklyCost(); // Initial calculation
-
-                // Apply saved theme or default to system preference
-                applyThemeFromLocalStorage();
             } catch (error) {
                 console.error("Error initializing Firebase or during authentication:", error);
                 // Display error message to user if necessary
@@ -580,39 +531,9 @@
             }
         };
 
-        // --- Theme Switching Logic ---
-        function applyTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-        }
-
-        function applyThemeFromLocalStorage() {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                applyTheme(savedTheme);
-            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                // Default to dark theme if system preference is dark
-                applyTheme('dark');
-            } else {
-                // Default to light theme
-                applyTheme('light');
-            }
-        }
-
-        lightThemeBtn.addEventListener('click', () => applyTheme('light'));
-        darkThemeBtn.addEventListener('click', () => applyTheme('dark'));
-
-        // Listen for system theme changes
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
-            if (!localStorage.getItem('theme')) { // Only react if user hasn't manually set a theme
-                applyTheme(event.matches ? 'dark' : 'light');
-            }
-        });
-
-
         // --- Helper Functions ---
 
-        // Formats date to Überblick-MM-DD
+        // Formats date to YYYY-MM-DD
         function formatDate(date) {
             const d = new Date(date);
             const year = d.getFullYear();
@@ -993,13 +914,13 @@
                 const yesBtn = document.createElement('button');
                 yesBtn.id = 'modalYesBtn';
                 yesBtn.className = 'btn btn-primary';
-                yesBtn.textContent = 'Yes';
+                yesBtn.textContent = 'হ্যাঁ (Yes)';
                 modalButtonsDiv.appendChild(yesBtn);
 
                 const noBtn = document.createElement('button');
                 noBtn.id = 'modalNoBtn';
                 noBtn.className = 'btn btn-secondary';
-                noBtn.textContent = 'No';
+                noBtn.textContent = 'না (No)';
                 modalButtonsDiv.appendChild(noBtn);
 
             } else {
@@ -1007,7 +928,7 @@
                 const closeBtn = document.createElement('button');
                 closeBtn.id = 'modalCloseBtn';
                 closeBtn.className = 'btn btn-primary';
-                closeBtn.textContent = 'Close';
+                closeBtn.textContent = 'বন্ধ করুন (Close)';
                 modalButtonsDiv.appendChild(closeBtn);
 
                 closeBtn.onclick = () => {
@@ -1044,7 +965,7 @@
                 lastWeekProductTypesDiv.innerHTML = ''; // Clear previous content
                 const productNames = new Set();
                 let hasData = false;
-                currentDetailedProductsForPdf = []; // Reset stored data for PDF
+                currentProductRangeData = []; // Reset stored data
 
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
@@ -1054,18 +975,8 @@
                                 productNames.add(product.productName);
                                 hasData = true;
                             }
-                            // Aggregate quantities and costs for products with the same name across different plans for PDF data
-                            const existingProduct = currentDetailedProductsForPdf.find(p => p.productName === product.productName);
-                            if (existingProduct) {
-                                existingProduct.totalQuantity += (product.totalQuantity || 0);
-                                existingProduct.productTotalCost += (product.productTotalCost || 0);
-                                // For ingredients, if same product name, we assume same ingredients per unit.
-                                // If ingredients can differ for same named products, a more complex merge/list is needed.
-                                // For simplicity here, we'll keep the ingredients from the first found product.
-                            } else {
-                                currentDetailedProductsForPdf.push({ ...product }); // Add a copy of the product data
-                            }
                         });
+                        currentProductRangeData.push(...data.products); // Store all products from all plans in this range
                     }
                 });
 
@@ -1096,20 +1007,20 @@
             const searchEndDate = searchEndDateInput.value;
 
             if (!searchStartDate || !searchEndDate) {
-                showCustomMessageBox('Message', 'Please select both start and end dates for the search.', false);
+                showCustomMessageBox('বার্তা (Message)', 'অনুসন্ধানের জন্য শুরুর এবং শেষের তারিখ উভয়ই নির্বাচন করুন। (Please select both start and end dates for the search.)', false);
                 return;
             }
 
             const sDate = new Date(searchStartDate);
             const eDate = new Date(searchEndDate);
-            displayProductTypesForRange(sDate, eDate, 'Search Results');
+            displayProductTypesForRange(sDate, eDate, 'অনুসন্ধানের ফলাফল');
         });
 
         // Event listener for "Last 10 Days" button
         last10DaysBtn.addEventListener('click', () => {
             const now = new Date();
             const tenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 10);
-            displayProductTypesForRange(tenDaysAgo, now, 'Last 10 Days Product Types');
+            displayProductTypesForRange(tenDaysAgo, now, 'গত ১০ দিনের পণ্যের ধরণ');
             searchStartDateInput.value = formatDate(tenDaysAgo);
             searchEndDateInput.value = formatDate(now);
         });
@@ -1120,7 +1031,7 @@
             if (currentProductRangeStartDate && currentProductRangeEndDate) {
                 openProductDetailsModal(currentProductRangeStartDate, currentProductRangeEndDate);
             } else {
-                showCustomMessageBox('Message', 'Please select a date range first to view detailed data.', false);
+                showCustomMessageBox('বার্তা (Message)', 'বিস্তারিত ডেটা দেখার জন্য প্রথমে একটি ডেট রেঞ্জ নির্বাচন করুন। (Please select a date range first to view detailed data.)', false);
             }
         });
 
@@ -1132,7 +1043,7 @@
         async function openProductDetailsModal(startDate, endDate) {
             if (!db || !userId) return;
 
-            productDetailsTableContainer.innerHTML = `<p class="text-center text-gray-500">Loading data...</p>`;
+            productDetailsTableContainer.innerHTML = `<p class="text-center text-gray-500">ডেটা লোড হচ্ছে... (Loading data...)</p>`;
             noProductDetailsDataMessage.classList.add('hidden');
 
             const q = query(
@@ -1155,9 +1066,9 @@
                             if (existingProduct) {
                                 existingProduct.totalQuantity += (product.totalQuantity || 0);
                                 existingProduct.productTotalCost += (product.productTotalCost || 0);
-                                // For ingredients, if same product name, we assume same ingredients per unit.
-                                // If ingredients can differ for same named products, a more complex merge/list is needed.
-                                // For simplicity here, we'll keep the ingredients from the first found product.
+                                // For ingredients, we'll list them as they are defined per product,
+                                // not necessarily aggregate across products in this view.
+                                // If you need to aggregate ingredients across same named products, that's a separate logic.
                             } else {
                                 productsToShow.push({ ...product }); // Add a copy of the product data
                             }
@@ -1171,10 +1082,10 @@
                         <table class="min-w-full">
                             <thead>
                                 <tr>
-                                    <th>Product Name</th>
-                                    <th>Total Quantity</th>
-                                    <th>Total Cost</th>
-                                    <th>Ingredients List</th>
+                                    <th>পণ্যের নাম (Product Name)</th>
+                                    <th>মোট পণ্যের পরিমাণ (Total Product Quantity)</th>
+                                    <th>মোট খরচ (Total Cost)</th>
+                                    <th>উপাদান সমূহ (Ingredients List)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1184,10 +1095,10 @@
                         let ingredientsListHtml = '';
                         if (product.ingredients && Array.isArray(product.ingredients) && product.ingredients.length > 0) {
                             ingredientsListHtml = product.ingredients.map(ing =>
-                                `<div class="ingredient-list-item">${ing.itemName}: ${ing.weight} ${ing.unit} (৳${ing.price.toFixed(2)})</div>`
+                                `<div class="ingredient-list-item">${ing.itemName}: ${ing.weight} ${ing.unit} (৳${ing.price})</div>`
                             ).join('');
                         } else {
-                            ingredientsListHtml = `<div class="ingredient-list-item">No ingredients.</div>`;
+                            ingredientsListHtml = `<div class="ingredient-list-item">কোনো উপাদান নেই। (No ingredients.)</div>`;
                         }
 
                         tableHTML += `
@@ -1208,8 +1119,8 @@
 
                 productDetailsModal.classList.add('active'); // Show the modal
             } catch (error) {
-                console.error("Error fetching product details data:", error);
-                productDetailsTableContainer.innerHTML = `<p class="text-red-500 text-center">Error loading detailed data.</p>`;
+                console.error("পণ্যের বিস্তারিত ডেটা ফেচ করতে ত্রুটি:", error);
+                productDetailsTableContainer.innerHTML = `<p class="text-red-500 text-center">বিস্তারিত ডেটা লোড করতে ত্রুটি। (Error loading detailed data.)</p>`;
                 noProductDetailsDataMessage.classList.add('hidden'); // Hide the generic no data message
                 productDetailsModal.classList.add('active'); // Still show modal, but with error
             }
@@ -1249,17 +1160,17 @@
                             const docId = event.target.dataset.id;
                             // Show confirmation modal before deleting
                             showCustomMessageBox(
-                                'Confirm',
-                                'Are you sure you want to delete this weekly plan?',
+                                'নিশ্চিত করুন (Confirm)',
+                                'আপনি কি এই সাপ্তাহিক পরিকল্পনাটি মুছে ফেলতে নিশ্চিত? (Are you sure you want to delete this weekly plan?)',
                                 true // Show Yes/No buttons
                             );
                             document.getElementById('modalYesBtn').onclick = async () => {
                                 try {
                                     await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/weekly_plans`, docId));
-                                    showCustomMessageBox('Message', 'Weekly plan deleted successfully.', false);
+                                    showCustomMessageBox('বার্তা (Message)', 'সাপ্তাহিক পরিকল্পনা সফলভাবে মুছে ফেলা হয়েছে। (Weekly plan deleted successfully.)', false);
                                 } catch (e) {
-                                    console.error("Error deleting weekly plan:", e);
-                                    showCustomMessageBox('Message', 'Error deleting plan. Please try again.', false);
+                                    console.error("সাপ্তাহিক পরিকল্পনা মুছে ফেলতে ত্রুটি:", e);
+                                    showCustomMessageBox('বার্তা (Message)', 'পরিকল্পনা মুছে ফেলতে ত্রুটি হয়েছে। আবার চেষ্টা করুন। (Error deleting plan. Please try again.)', false);
                                 } finally {
                                     remainingModal.classList.remove('active');
                                 }
@@ -1271,165 +1182,80 @@
                     });
                 }
             }, (error) => {
-                console.error("Error fetching saved weekly plans:", error);
-                savedWeeklyPlansList.innerHTML = `<p class="text-red-500 text-center">Error loading plans.</p>`;
+                console.error("সংরক্ষিত সাপ্তাহিক পরিকল্পনা ফেচ করতে ত্রুটি:", error);
+                savedWeeklyPlansList.innerHTML = `<p class="text-red-500 text-center">পরিকল্পনা লোড করতে ত্রুটি। (Error loading plans.)</p>`;
             });
-        }
-
-        // --- Check Remaining Ingredient (POPUP Logic) ---
-        async function checkRemainingIngredient(itemName, inputElement) {
-            if (!db || !userId) return;
-            try {
-                const q = query(collection(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`), where("itemName", "==", itemName));
-                const querySnapshot = await getDocs(q);
-
-                if (!querySnapshot.empty) {
-                    const remainingDocSnap = querySnapshot.docs[0];
-                    currentRemainingData = remainingDocSnap.data(); // Store the data
-                    currentRemainingDocId = remainingDocSnap.id; // Store the document ID
-                    currentModalInput = inputElement; // Store reference to the input field
-
-                    // Simplified message
-                    const message = `আপনার ইনভেন্টরিতে <strong>${currentRemainingData.itemName}</strong> এর অবশিষ্ট স্টক আছে। আপনি কি এই প্ল্যানে এটি ব্যবহার করতে চান এবং ইনভেন্টরি থেকে অ্যাডজাস্ট করতে চান? (You have remaining stock of <strong>${currentRemainingData.itemName}</strong> in your inventory. Do you want to use it for this plan and adjust from inventory?)`;
-                    
-                    showCustomMessageBox('বার্তা (Message)', message, true); // Pass the simplified message
-
-                    // Set up event handlers for the dynamically created Yes/No buttons
-                    document.getElementById('modalYesBtn').onclick = async () => {
-                        try {
-                            if (currentModalInput && currentRemainingData && currentRemainingDocId) {
-                                // Set the input field value to the remaining quantity
-                                // Assuming the inputElement is the quantity/weight input for the ingredient
-                                const weightInput = currentModalInput.closest('.ingredient-row').querySelector('[name="ingredientWeight"]');
-                                if (weightInput) {
-                                    weightInput.value = currentRemainingData.remainingWeight;
-                                    weightInput.dispatchEvent(new Event('input')); // Trigger input event to recalculate cost
-                                } else {
-                                    // Fallback if weightInput not found (e.g., if inputElement was itemName field)
-                                    currentModalInput.value = currentRemainingData.remainingWeight;
-                                    currentModalInput.dispatchEvent(new Event('input'));
-                                }
-                                
-
-                                // Delete the remaining ingredient from Firestore
-                                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`, currentRemainingDocId));
-                                
-                                showCustomMessageBox('বার্তা (Message)', `প্ল্যানে '${currentRemainingData.itemName}' যোগ করা হয়েছে এবং ইনভেন্টরি থেকে ব্যবহার করা হয়েছে। ( '${currentRemainingData.itemName}' added to plan and consumed from inventory.)`, false);
-                            }
-                        } catch (e) {
-                            console.error("Error consuming remaining ingredient:", e);
-                            showCustomMessageBox('বার্তা (Message)', 'ইনভেন্টরি থেকে উপাদান ব্যবহার করতে ব্যর্থ। (Failed to consume ingredient from inventory.)', false);
-                        } finally {
-                            remainingModal.classList.remove('active');
-                            currentModalInput = null; // Clear global references
-                            currentRemainingDocId = null;
-                            currentRemainingData = null;
-                        }
-                    };
-
-                    document.getElementById('modalNoBtn').onclick = () => {
-                        remainingModal.classList.remove('active');
-                        currentModalInput = null; // Clear global references
-                        currentRemainingDocId = null;
-                        currentRemainingData = null;
-                    };
-
-                }
-            } catch (e) {
-                console.error("Error checking remaining ingredient:", e);
-                // Optionally show a message to the user about the error, but usually silent for this check
-            }
         }
 
         // --- PDF Generation Logic ---
         downloadPdfBtn.addEventListener('click', async () => {
-            // Add debugging logs
-            console.log('Attempting PDF download...');
-            console.log('currentProductRangeStartDate:', currentProductRangeStartDate);
-            console.log('currentProductRangeEndDate:', currentProductRangeEndDate);
-            console.log('currentDetailedProductsForPdf content:', currentDetailedProductsForPdf); 
-
-            if (!currentProductRangeStartDate || !currentProductRangeEndDate || currentDetailedProductsForPdf.length === 0) {
-                showCustomMessageBox('Message', 'Please select a date range and load data to download PDF.', false);
+            if (!currentProductRangeStartDate || !currentProductRangeEndDate) {
+                showCustomMessageBox('বার্তা (Message)', 'শপিং লিস্ট ডাউনলোড করতে একটি ডেট রেঞ্জ নির্বাচন করুন। (Please select a date range to download the shopping list.)', false);
                 return;
             }
 
-            const doc = new window.jspdf.jsPDF(); // Access jsPDF from window object
+            const doc = new jspdf.jsPDF();
             const startStr = formatDate(currentProductRangeStartDate);
             const endStr = formatDate(currentProductRangeEndDate);
 
-            // PDF Title
-            doc.setFontSize(16);
-            doc.text(`Product Details List`, 14, 20);
-            doc.setFontSize(12);
-            doc.text(`For Dates: ${startStr} - ${endStr}`, 14, 28);
+            doc.setFont('Inter', 'normal'); // Set a common font for PDF
 
+            doc.text(`শপিং লিস্ট (${startStr} - ${endStr})`, 14, 20); // Title for the PDF
 
-            const tableColumn = [
-                "Product Name",
-                "Total Quantity",
-                "Total Cost",
-                "Ingredients List"
-            ];
-            const tableRows = [];
+            const allIngredients = {}; // Consolidated ingredients for shopping list
 
-            currentDetailedProductsForPdf.forEach(product => {
-                let ingredientsListText = '';
-                if (product.ingredients && Array.isArray(product.ingredients) && product.ingredients.length > 0) {
-                    ingredientsListText = product.ingredients.map(ing =>
-                        `${ing.itemName}: ${ing.weight} ${ing.unit} (৳${ing.price.toFixed(2)})`
-                    ).join('\n'); // Use newline for ingredients list
-                } else {
-                    ingredientsListText = `No ingredients.`;
-                }
+            // Aggregate ingredients from all products in the current range
+            // currentProductRangeData contains all product objects from all plans in the selected range
+            currentProductRangeData.forEach(product => {
+                const productQuantity = product.totalQuantity || 0;
+                product.ingredients.forEach(ingredient => {
+                    const itemName = ingredient.itemName.toLowerCase();
+                    const weight = parseFloat(ingredient.weight) || 0;
+                    const unit = ingredient.unit;
 
-                tableRows.push([
-                    product.productName,
-                    product.totalQuantity.toString(),
-                    `৳${product.productTotalCost.toFixed(2)}`,
-                    ingredientsListText
-                ]);
+                    // Create a unique key that combines item name and unit
+                    const key = `${itemName}-${unit}`;
+
+                    if (!allIngredients[key]) {
+                        allIngredients[key] = {
+                            itemName: ingredient.itemName,
+                            totalWeight: 0,
+                            unit: unit
+                        };
+                    }
+                    allIngredients[key].totalWeight += (weight * productQuantity); // Summing up total quantity per item
+                });
             });
+
+            const tableRows = [];
+            for (const key in allIngredients) {
+                const item = allIngredients[key];
+                tableRows.push([item.itemName, `${item.totalWeight.toFixed(2)} ${item.unit}`]);
+            }
+
+            // Sort table rows alphabetically by item name
+            tableRows.sort((a, b) => a[0].localeCompare(b[0]));
 
             if (tableRows.length > 0) {
                 doc.autoTable({
-                    head: [tableColumn],
+                    head: [['উপাদানের নাম (Ingredient Name)', 'মোট পরিমাণ (Total Quantity)']],
                     body: tableRows,
-                    startY: 40, // Start table lower to accommodate title
+                    startY: 30,
                     styles: {
-                        font: 'Helvetica', // Using Helvetica for better compatibility with non-latin characters
-                        fontStyle: 'normal',
-                        fontSize: 9,
-                        cellPadding: 3,
-                        lineColor: 200, // Light grey borders
-                        lineWidth: 0.1,
-                        textColor: [51, 65, 85]
+                        font: 'Inter', // Use Inter font
+                        fontStyle: 'normal'
                     },
                     headStyles: {
                         fillColor: [240, 244, 248], // Light blue-gray background for header
                         textColor: [51, 65, 85], // Darker gray text
-                        fontStyle: 'bold',
-                        halign: 'center' // Center header text
-                    },
-                    columnStyles: {
-                        0: {cellWidth: 'auto'}, // Product Name
-                        1: {cellWidth: 60, halign: 'center'}, // Total Quantity
-                        2: {cellWidth: 60, halign: 'right'}, // Total Cost
-                        3: {cellWidth: 'auto'} // Ingredients List (will expand)
-                    },
-                    didDrawCell: data => {
-                        // For Ingredients List column, ensure proper line breaks
-                        if (data.column.index === 3 && data.cell.text) {
-                            // autoTable generally handles newlines, but this hook can be used for custom rendering if needed
-                            // For now, it's illustrative; default autoTable handling is often sufficient.
-                        }
+                        fontStyle: 'bold'
                     }
                 });
 
-                doc.save(`Product_Details_${startStr}_to_${endStr}.pdf`);
-                showCustomMessageBox('Message', 'Product details list PDF downloaded successfully.', false);
+                doc.save(`Shopping_List_${startStr}_to_${endStr}.pdf`);
+                showCustomMessageBox('বার্তা (Message)', 'শপিং লিস্ট PDF সফলভাবে ডাউনলোড হয়েছে। (Shopping list PDF downloaded successfully.)', false);
             } else {
-                showCustomMessageBox('Message', 'No detailed data for this date range.', false);
+                showCustomMessageBox('বার্তা (Message)', 'এই তারিখ পরিসরের জন্য কোনো শপিং লিস্ট ডেটা নেই। (No shopping list data for this date range.)', false);
             }
         });
 
