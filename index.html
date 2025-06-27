@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Shop Inventory System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top */
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        @media (min-width: 1024px) {
+            .container {
+                grid-template-columns: 2fr 1fr; /* Two columns on large screens */
+            }
+        }
+        .input-group label {
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .input-group input[type="date"],
+        .input-group input[type="text"],
+        .input-group input[type="number"] {
+            border: 1px solid #cbd5e1;
+            padding: 10px 15px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #3b82f6; /* Blue focus ring */
+        }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .btn-primary {
+            background-color: #3b82f6; /* Blue */
+            color: white;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb; /* Darker blue */
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background-color: #64748b; /* Gray */
+            color: white;
+            border: none;
+        }
+        .btn-secondary:hover {
+            background-color: #475569; /* Darker gray */
+            transform: translateY(-1px);
+        }
+        .ingredient-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr) auto; /* Item, Weight, Unit, Price, Delete */
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .ingredient-row input, .ingredient-row select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        .total-cost-display {
+            background-color: #e0f2fe; /* Light blue */
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e40af; /* Dark blue */
+            text-align: center;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 450px; /* Default max-width for smaller modals */
+            text-align: center;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+            box-sizing: border-box; /* Ensure padding doesn't push width over max-width */
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1e40af;
+        }
+        .modal-content p {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            color: #475569;
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .modal-buttons button {
+            flex: 1;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3b82f6; /* Blue */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none; /* Hidden by default */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-spinner.active {
+            display: block;
+        }
+
+        /* Specific style for product details modal to be wider */
+        #productDetailsModal .modal-content {
+            max-width: 900px; /* Wider for table content */
+            text-align: left; /* Align text left for table */
+        }
+
+        #productDetailsModal table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #productDetailsModal th, #productDetailsModal td {
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            text-align: left;
+        }
+
+        #productDetailsModal th {
+            background-color: #f0f4f8;
+            font-weight: 600;
+        }
+
+        #productDetailsModal tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .clickable-header {
+            cursor: pointer;
+            text-decoration: underline;
+            color: #3b82f6;
+        }
+        .clickable-header:hover {
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-start justify-center min-h-screen p-5">
+    <div class="container bg-white p-8 rounded-xl shadow-lg flex flex-col lg:grid lg:grid-cols-3 gap-8">
+
+        <!-- Left Column: Weekly Planning -->
+        <div class="col-span-2 p-6 bg-blue-50 rounded-xl shadow-inner">
+            <h2 class="text-3xl font-bold text-blue-800 mb-6 text-center">সাপ্তাহিক উপাদানের পরিকল্পনা (Weekly Ingredient Planning)</h2>
+
+            <!-- Date Duration Selection -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="input-group">
+                    <label for="startDate" class="block text-sm font-semibold text-gray-700">শুরুর তারিখ (Start Date):</label>
+                    <input type="date" id="startDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 p-2">
+                </div>
+                <div class="input-group">
+                    <label for="endDate" class="block text-sm font-semibold text-gray-700">শেষের তারিখ (End Date):</label>
+                    <input type="date" id="endDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50 p-2">
+                </div>
+            </div>
+
+            <!-- Product and Ingredients Form -->
+            <div id="productsContainer" class="space-y-6">
+                <!-- Product block will be added here by JS -->
+            </div>
+
+            <button id="addProductBtn" class="w-full btn btn-secondary mt-6 py-3 px-6 rounded-lg text-lg">
+                নতুন পণ্যের পরিকল্পনা যোগ করুন (Add New Product Plan)
+            </button>
+
+            <div class="total-cost-display mt-8 p-4 bg-blue-100 text-blue-900 rounded-lg text-center font-bold text-2xl">
+                সপ্তাহের মোট আনুমানিক খরচ: ৳<span id="totalWeeklyCost">0.00</span> (Total Estimated Cost for Week)
+            </div>
+
+            <button id="savePlanBtn" class="w-full btn btn-primary mt-8 py-4 px-6 rounded-xl text-xl">
+                সাপ্তাহিক পরিকল্পনা সংরক্ষণ করুন (Save Weekly Plan)
+            </button>
+
+            <div class="loading-spinner mt-4" id="saveSpinner"></div>
+            <p id="saveMessage" class="text-center text-green-600 mt-2 hidden"></p>
+        </div>
+
+        <!-- Right Column: Last Week's Remains & Summary -->
+        <div class="col-span-1 p-6 bg-gray-50 rounded-xl shadow-inner">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">অবশিষ্ট স্টক এবং অন্তর্দৃষ্টি (Remaining Stock & Insights)</h2>
+
+            <!-- Manually Add Remaining Ingredients -->
+            <div class="mb-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h3 class="text-xl font-semibold text-yellow-800 mb-4">অবশিষ্ট উপাদান ম্যানুয়ালি যোগ করুন (Add Remaining Ingredients Manually)</h3>
+                <div class="input-group mb-3">
+                    <label for="remainsItemName" class="block text-sm font-semibold text-gray-700">উপাদানের নাম (Ingredient Name):</label>
+                    <input type="text" id="remainsItemName" placeholder="যেমন, ময়দা (e.g., Flour)" class="mt-1 p-2 w-full rounded-md border-gray-300">
+                </div>
+                <div class="input-group mb-3">
+                    <label for="remainsWeight" class="block text-sm font-semibold text-gray-700">অবশিষ্ট ওজন (Remaining Weight):</label>
+                    <input type="number" id="remainsWeight" placeholder="যেমন, 500 (e.g., 500)" class="mt-1 p-2 w-full rounded-md border-gray-300">
+                </div>
+                <div class="input-group mb-4">
+                    <label for="remainsUnit" class="block text-sm font-semibold text-gray-700">একক (Unit):</label>
+                    <select id="remainsUnit" class="mt-1 p-2 w-full rounded-md border-gray-300">
+                        <option value="grams">grams</option>
+                        <option value="kg">kg</option>
+                        <option value="ml">ml</option>
+                        <option value="liter">liter</option>
+                        <option value="pieces">pieces</option>
+                        <option value="units">units</option>
+                    </select>
+                </div>
+                <button id="addRemainingBtn" class="w-full btn bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg">
+                    অবশিষ্ট স্টক যোগ করুন (Add Remaining Stock)
+                </button>
+            </div>
+
+            <!-- Display Current Remaining Ingredients -->
+            <div class="mb-8">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">বর্তমান অবশিষ্ট স্টক (Current Remaining Stock)</h3>
+                <div id="currentRemainsList" class="space-y-3">
+                    <!-- Remaining items will be listed here by JS -->
+                    <p class="text-gray-500 text-center" id="noRemainsMessage">এখনো কোনো অবশিষ্ট আইটেম যোগ করা হয়নি (No remaining items added yet).</p>
+                </div>
+            </div>
+
+            <!-- Date Range Filter for Product Types -->
+            <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 class="text-xl font-semibold text-blue-800 mb-4">পণ্যের ধরণ অনুযায়ী অনুসন্ধান (Search Product Types by Date)</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="input-group">
+                        <label for="searchStartDate" class="block text-sm font-semibold text-gray-700">শুরুর তারিখ (Start Date):</label>
+                        <input type="date" id="searchStartDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </div>
+                    <div class="input-group">
+                        <label for="searchEndDate" class="block text-sm font-semibold text-gray-700">শেষের তারিখ (End Date):</label>
+                        <input type="date" id="searchEndDate" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row gap-3">
+                    <button id="searchProductBtn" class="flex-1 btn btn-primary py-2 px-4 rounded-lg">
+                        অনুসন্ধান করুন (Search)
+                    </button>
+                    <button id="last10DaysBtn" class="flex-1 btn btn-secondary py-2 px-4 rounded-lg">
+                        গত ১০ দিন (Last 10 Days)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Last Week's Product Types - Now clickable for details -->
+            <div>
+                <h3 id="lastWeekProductTypesHeader" class="text-xl font-semibold text-gray-800 mb-4 clickable-header">
+                    <span id="productTypeRangeText">গত সপ্তাহের পণ্যের ধরণ (Last Week's Product Types)</span>
+                </h3>
+                <div id="lastWeekProductTypes" class="space-y-2 text-gray-700">
+                    <p id="noLastWeekData" class="text-gray-500 text-center">অনুসন্ধান করুন অথবা ডেটা পাওয়া যায়নি (Search or No data found).</p>
+                    <!-- Last week's product types will be listed here by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Remaining Ingredient Notification (reused for general messages) -->
+    <div id="remainingModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>বার্তা (Message)</h3>
+            <p id="modalMessage"></p>
+            <div class="modal-buttons">
+                <button id="modalYesBtn" class="btn btn-primary">হ্যাঁ (Yes)</button>
+                <button id="modalNoBtn" class="btn btn-secondary">না (No)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Product Details Table -->
+    <div id="productDetailsModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 class="text-center mb-4">পণ্যের বিস্তারিত তালিকা (Product Details List)</h3>
+            <div id="productDetailsTableContainer" class="overflow-x-auto">
+                <p class="text-center text-gray-500" id="noProductDetailsData">কোনো বিস্তারিত ডেটা পাওয়া যায়নি। (No detailed data found.)</p>
+            </div>
+            <div class="modal-buttons mt-6">
+                <button id="productDetailsModalCloseBtn" class="btn btn-primary">বন্ধ করুন (Close)</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Project Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCFBk9pQpGvGP-U_m9YqA38Fbq-COw1xoQ",
+            authDomain: "food-inventory-app-1764a.firebaseapp.com",
+            projectId: "food-inventory-app-1764a",
+            storageBucket: "food-inventory-app-1764a.firebasestorage.app",
+            messagingSenderId: "962983280369",
+            appId: "1:962983280369:web:dd86f8c2a6dcd44244b350"
+        };
+
+        // Global Firebase variables
+        let app;
+        let db;
+        let auth;
+        let userId = 'anonymous'; // Default anonymous userId
+
+        const appId = firebaseConfig.projectId; // Use projectId as appId for consistency with Firestore path
+
+        // HTML elements
+        const productsContainer = document.getElementById('productsContainer');
+        const addProductBtn = document.getElementById('addProductBtn');
+        const savePlanBtn = document.getElementById('savePlanBtn');
+        const totalWeeklyCostSpan = document.getElementById('totalWeeklyCost');
+        const startDateInput = document.getElementById('startDate');
+        const endDateInput = document.getElementById('endDate');
+        const saveSpinner = document.getElementById('saveSpinner');
+        const saveMessage = document.getElementById('saveMessage');
+
+        const remainsItemNameInput = document.getElementById('remainsItemName');
+        const remainsWeightInput = document.getElementById('remainsWeight');
+        const remainsUnitSelect = document.getElementById('remainsUnit');
+        const addRemainingBtn = document.getElementById('addRemainingBtn');
+        const currentRemainsList = document.getElementById('currentRemainsList');
+        const noRemainsMessage = document.getElementById('noRemainsMessage');
+
+        const searchStartDateInput = document.getElementById('searchStartDate');
+        const searchEndDateInput = document.getElementById('searchEndDate');
+        const searchProductBtn = document.getElementById('searchProductBtn');
+        const last10DaysBtn = document.getElementById('last10DaysBtn');
+        const lastWeekProductTypesHeader = document.getElementById('lastWeekProductTypesHeader');
+        const productTypeRangeText = document.getElementById('productTypeRangeText');
+        const lastWeekProductTypesDiv = document.getElementById('lastWeekProductTypes');
+        const noLastWeekDataMessage = document.getElementById('noLastWeekData');
+
+        const remainingModal = document.getElementById('remainingModal');
+        const modalMessage = document.getElementById('modalMessage');
+        const modalYesBtn = document.getElementById('modalYesBtn');
+        const modalNoBtn = document.getElementById('modalNoBtn');
+
+        const productDetailsModal = document.getElementById('productDetailsModal');
+        const productDetailsTableContainer = document.getElementById('productDetailsTableContainer');
+        const noProductDetailsDataMessage = document.getElementById('noProductDetailsData');
+        const productDetailsModalCloseBtn = document.getElementById('productDetailsModalCloseBtn');
+
+        let productCount = 0; // To keep track of product blocks
+
+        // --- Firebase Initialization and Auth ---
+        window.onload = async () => {
+            try {
+                // Initialize Firebase
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // Sign in anonymously
+                await signInAnonymously(auth);
+
+                // Listen for auth state changes to get user ID
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        console.log('Firebase initialized and user signed in:', userId);
+                        // Once authenticated, load existing data
+                        loadRemainingIngredients();
+                        // Load last week's data by default on app start
+                        const now = new Date();
+                        const oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+                        const twoWeeksAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
+                        displayProductTypesForRange(twoWeeksAgo, oneWeekAgo, 'গত সপ্তাহের পণ্যের ধরণ'); // Default last week
+                    } else {
+                        console.log('No user signed in after attempts, using anonymous ID fallback.');
+                        userId = auth.currentUser?.uid || crypto.randomUUID(); // Fallback if still no user
+                        loadRemainingIngredients();
+                        // Also attempt to load product types with a default range even if auth is delayed
+                        const now = new Date();
+                        const oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+                        const twoWeeksAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
+                        displayProductTypesForRange(twoWeeksAgo, oneWeekAgo, 'গত সপ্তাহের পণ্যের ধরণ');
+                    }
+                });
+
+                // Add initial product planning block
+                addProductBlock();
+                calculateTotalWeeklyCost(); // Initial calculation
+            } catch (error) {
+                console.error("Error initializing Firebase or during authentication:", error);
+                // Display error message to user if necessary
+                saveMessage.textContent = 'অ্যাপ শুরু করতে ব্যর্থ হয়েছে। আবার চেষ্টা করুন। (Failed to initialize app. Please try again.)';
+                saveMessage.classList.remove('hidden', 'text-green-600');
+                saveMessage.classList.add('text-red-600');
+            }
+        };
+
+        // --- Helper Functions ---
+
+        // Formats date to YYYY-MM-DD
+        function formatDate(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Calculates the total cost for a single ingredient based on its weight, price, and product quantity
+        function calculateIngredientCost(ingredientWeight, ingredientPrice, productTotalQuantity) {
+            // Assuming Ingredients Price is the cost of the Ingredients Weight provided for ONE product unit.
+            // So if 500g flour costs ৳1 for ONE pizza, and you make 10 pizzas, it's 10 * ৳1.
+            return (parseFloat(ingredientPrice) || 0) * (parseFloat(productTotalQuantity) || 0);
+        }
+
+        // Updates the total weekly cost displayed
+        function calculateTotalWeeklyCost() {
+            let totalCost = 0;
+            // Iterate over each product block
+            productsContainer.querySelectorAll('.product-block').forEach(productBlock => {
+                const productTotalQuantity = productBlock.querySelector('[name="productTotalQuantity"]').value;
+
+                // Iterate over each ingredient row within the product block
+                productBlock.querySelectorAll('.ingredient-row').forEach(ingredientRow => {
+                    const ingredientPrice = ingredientRow.querySelector('[name="ingredientPrice"]').value; // Only price is needed for total product cost calculation, weight is for quantity calculation
+
+                    totalCost += calculateIngredientCost(1, ingredientPrice, productTotalQuantity); // Cost per product unit * total quantity
+                });
+            });
+            totalWeeklyCostSpan.textContent = totalCost.toFixed(2);
+        }
+
+        // --- Dynamic Form Generation ---
+
+        function addIngredientRow(ingredientContainer, initialData = {}) {
+            const ingredientRow = document.createElement('div');
+            ingredientRow.className = 'ingredient-row flex flex-wrap gap-4 items-center mb-3 p-3 bg-gray-50 rounded-lg';
+            ingredientRow.innerHTML = `
+                <div class="flex-1 min-w-[120px]">
+                    <label class="block text-sm font-medium text-gray-700 sr-only">উপাদানের নাম (Item Name)</label>
+                    <input type="text" name="ingredientItemName" placeholder="উপাদানের নাম (যেমন, ময়দা)" value="${initialData.itemName || ''}"
+                           class="p-2 border border-gray-300 rounded-md w-full ingredient-name-input">
+                </div>
+                <div class="flex-1 min-w-[80px]">
+                    <label class="block text-sm font-medium text-gray-700 sr-only">ওজন (Weight)</label>
+                    <input type="number" name="ingredientWeight" placeholder="ওজন (যেমন, 500)" value="${initialData.weight || ''}"
+                           class="p-2 border border-gray-300 rounded-md w-full ingredient-weight-input" min="0">
+                </div>
+                <div class="flex-1 min-w-[70px]">
+                    <label class="block text-sm font-medium text-gray-700 sr-only">একক (Unit)</label>
+                    <select name="ingredientUnit" class="p-2 border border-gray-300 rounded-md w-full">
+                        <option value="grams" ${initialData.unit === 'grams' ? 'selected' : ''}>grams</option>
+                        <option value="kg" ${initialData.unit === 'kg' ? 'selected' : ''}>kg</option>
+                        <option value="ml" ${initialData.unit === 'ml' ? 'selected' : ''}>ml</option>
+                        <option value="liter" ${initialData.unit === 'liter' ? 'selected' : ''}>liter</option>
+                        <option value="pieces" ${initialData.unit === 'pieces' ? 'selected' : ''}>pieces</option>
+                        <option value="units" ${initialData.unit === 'units' ? 'selected' : ''}>units</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[70px]">
+                    <label class="block text-sm font-medium text-gray-700 sr-only">মূল্য (Price)</label>
+                    <input type="number" name="ingredientPrice" placeholder="মূল্য (প্রতি একক)" value="${initialData.price || ''}"
+                           class="p-2 border border-gray-300 rounded-md w-full ingredient-price-input" min="0" step="0.01">
+                </div>
+                <button type="button" class="remove-ingredient-btn text-red-500 hover:text-red-700 text-2xl font-bold p-1 leading-none transition-transform transform hover:scale-110">
+                    &times;
+                </button>
+            `;
+
+            ingredientContainer.appendChild(ingredientRow);
+
+            // Add event listeners for cost calculation
+            // Note: Ingredient weight change does not directly affect total cost unless price is per unit of weight
+            // Here, assuming price is per unit of product, not per unit of ingredient weight.
+            // If price is per unit of ingredient weight, then this logic needs adjustment.
+            ingredientRow.querySelector('[name="ingredientPrice"]').addEventListener('input', calculateTotalWeeklyCost);
+            ingredientRow.querySelector('.remove-ingredient-btn').addEventListener('click', () => {
+                ingredientRow.remove();
+                calculateTotalWeeklyCost();
+            });
+
+            // Add event listener for remaining ingredient notification
+            ingredientRow.querySelector('.ingredient-name-input').addEventListener('blur', (event) => {
+                const enteredIngredientName = event.target.value.trim().toLowerCase();
+                if (enteredIngredientName) {
+                    checkRemainingIngredient(enteredIngredientName, event.target);
+                }
+            });
+
+             // If it's an initial load and there's a predefined name, check for remaining automatically
+             if (initialData.itemName) {
+                checkRemainingIngredient(initialData.itemName.toLowerCase(), ingredientRow.querySelector('.ingredient-name-input'));
+            }
+        }
+
+        function addProductBlock(initialData = {}) {
+            productCount++;
+            const productBlock = document.createElement('div');
+            productBlock.className = 'product-block border border-blue-200 p-5 rounded-lg mb-6 bg-white shadow-sm';
+            productBlock.innerHTML = `
+                <h3 class="text-xl font-semibold text-blue-700 mb-4 flex justify-between items-center">
+                    <span>পণ্যের পরিকল্পনা #${productCount} (Product Plan #${productCount})</span>
+                    <button type="button" class="remove-product-btn text-red-500 hover:text-red-700 text-3xl font-bold leading-none transition-transform transform hover:scale-110">&times;</button>
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                    <div class="input-group">
+                        <label class="block text-sm font-medium text-gray-700">পণ্যের নাম (Product Name):</label>
+                        <input type="text" name="productName" placeholder="যেমন, পিজা (e.g., Pizza)" value="${initialData.productName || ''}"
+                               class="mt-1 p-2 border border-gray-300 rounded-md w-full">
+                    </div>
+                    <div class="input-group">
+                        <label class="block text-sm font-medium text-gray-700">মোট পরিমাণ (সপ্তাহের জন্য) (Total Quantity (for week)):</label>
+                        <input type="number" name="productTotalQuantity" placeholder="যেমন, 10 (e.g., 10)" value="${initialData.totalQuantity || ''}" min="1"
+                               class="mt-1 p-2 border border-gray-300 rounded-md w-full">
+                    </div>
+                </div>
+                <div class="ingredient-section mb-4">
+                    <h4 class="text-md font-semibold text-gray-600 mb-3">উপাদান (প্রতি পণ্য একক) (Ingredients (per product unit)):</h4>
+                    <div class="ingredient-container space-y-2">
+                        <!-- Ingredient rows will be added here -->
+                    </div>
+                    <button type="button" class="add-ingredient-btn btn btn-secondary mt-3 py-2 px-4 text-sm">
+                        এই পণ্যের জন্য উপাদান যোগ করুন (Add Ingredient for this Product)
+                    </button>
+                </div>
+            `;
+
+            productsContainer.appendChild(productBlock);
+
+            const ingredientContainer = productBlock.querySelector('.ingredient-container');
+            const addIngredientBtn = productBlock.querySelector('.add-ingredient-btn');
+            const removeProductBtn = productBlock.querySelector('.remove-product-btn');
+            const productTotalQuantityInput = productBlock.querySelector('[name="productTotalQuantity"]');
+
+            // Add initial ingredient row if no initial data, or load existing ones
+            if (initialData.ingredients && initialData.ingredients.length > 0) {
+                initialData.ingredients.forEach(ingredient => addIngredientRow(ingredientContainer, ingredient));
+            } else {
+                addIngredientRow(ingredientContainer);
+            }
+
+            // Event listeners for new ingredient and product removal
+            addIngredientBtn.addEventListener('click', () => addIngredientRow(ingredientContainer));
+            removeProductBtn.addEventListener('click', () => {
+                productBlock.remove();
+                calculateTotalWeeklyCost(); // Recalculate after removing a product
+            });
+            productTotalQuantityInput.addEventListener('input', calculateTotalWeeklyCost); // Recalculate if quantity changes
+        }
+
+        addProductBtn.addEventListener('click', addProductBlock);
+
+        // --- Firebase Data Operations ---
+
+        // Function to save the weekly plan
+        savePlanBtn.addEventListener('click', async () => {
+            saveSpinner.classList.add('active');
+            saveMessage.classList.add('hidden'); // Hide previous message
+
+            const startDate = startDateInput.value;
+            const endDate = endDateInput.value;
+
+            if (!startDate || !endDate) {
+                saveMessage.textContent = 'পরিকল্পনার জন্য শুরুর এবং শেষের তারিখ উভয়ই নির্বাচন করুন। (Please select both start and end dates for the plan.)';
+                saveMessage.classList.remove('hidden', 'text-green-600');
+                saveMessage.classList.add('text-red-600');
+                saveSpinner.classList.remove('active');
+                return;
+            }
+
+            const productsData = [];
+            productsContainer.querySelectorAll('.product-block').forEach(productBlock => {
+                const productName = productBlock.querySelector('[name="productName"]').value;
+                const totalQuantity = parseInt(productBlock.querySelector('[name="productTotalQuantity"]').value);
+
+                if (!productName || isNaN(totalQuantity) || totalQuantity <= 0) {
+                    // Skip invalid product entries or show error
+                    console.warn('অবৈধ পণ্য এন্ট্রি বাদ দেওয়া হচ্ছে:', productName, totalQuantity); // Skipping invalid product entry:
+                    return;
+                }
+
+                const ingredients = [];
+                let productUnitCost = 0; // Cost for one unit of this product
+
+                productBlock.querySelectorAll('.ingredient-row').forEach(ingredientRow => {
+                    const itemName = ingredientRow.querySelector('[name="ingredientItemName"]').value;
+                    const weight = parseFloat(ingredientRow.querySelector('[name="ingredientWeight"]').value);
+                    const unit = ingredientRow.querySelector('[name="ingredientUnit"]').value;
+                    const price = parseFloat(ingredientRow.querySelector('[name="ingredientPrice"]').value);
+
+                    if (itemName && !isNaN(weight) && weight >= 0 && !isNaN(price) && price >= 0) {
+                        ingredients.push({ itemName, weight, unit, price });
+                        productUnitCost += price; // Sum up ingredient prices for one product unit
+                    }
+                });
+
+                productsData.push({
+                    productName,
+                    totalQuantity,
+                    ingredients,
+                    productUnitCost: productUnitCost, // Store cost for one unit of product
+                    productTotalCost: productUnitCost * totalQuantity // Total cost for this specific product batch
+                });
+            });
+
+            if (productsData.length === 0) {
+                saveMessage.textContent = 'অনুগ্রহ করে উপকরণ সহ অন্তত একটি বৈধ পণ্য যোগ করুন। (Please add at least one valid product with ingredients.)';
+                saveMessage.classList.remove('hidden', 'text-green-600');
+                saveMessage.classList.add('text-red-600');
+                saveSpinner.classList.remove('active');
+                return;
+            }
+
+            try {
+                // Save the main weekly plan
+                await addDoc(collection(db, `artifacts/${appId}/users/${userId}/weekly_plans`), {
+                    startDate: new Date(startDate),
+                    endDate: new Date(endDate),
+                    products: productsData,
+                    totalCost: parseFloat(totalWeeklyCostSpan.textContent),
+                    timestamp: new Date()
+                });
+
+                // Clear form after saving
+                productsContainer.innerHTML = '';
+                productCount = 0; // Reset product count for fresh start
+                addProductBlock(); // Add a fresh product block
+                startDateInput.value = '';
+                endDateInput.value = '';
+                calculateTotalWeeklyCost(); // Reset cost display
+
+                saveMessage.textContent = 'সাপ্তাহিক পরিকল্পনা সফলভাবে সংরক্ষণ করা হয়েছে! (Weekly plan saved successfully!)';
+                saveMessage.classList.remove('hidden', 'text-red-600');
+                saveMessage.classList.add('text-green-600');
+
+                // After saving a plan, re-load last week's data if needed (for product types)
+                const now = new Date();
+                const oneWeekAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+                const twoWeeksAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 14);
+                displayProductTypesForRange(twoWeeksAgo, oneWeekAgo, 'গত সপ্তাহের পণ্যের ধরণ'); // Default last week
+
+            } catch (e) {
+                console.error("নথি যোগ করতে ত্রুটি:", e); // Error adding document:
+                saveMessage.textContent = 'পরিকল্পনা সংরক্ষণে ত্রুটি। আবার চেষ্টা করুন। (Error saving plan. Please try again.)';
+                saveMessage.classList.remove('hidden', 'text-green-600');
+                saveMessage.classList.add('text-red-600');
+            } finally {
+                saveSpinner.classList.remove('active');
+            }
+        });
+
+        // --- Remaining Ingredients Management ---
+
+        addRemainingBtn.addEventListener('click', async () => {
+            const itemName = remainsItemNameInput.value.trim();
+            const weight = parseFloat(remainsWeightInput.value);
+            const unit = remainsUnitSelect.value;
+
+            if (!itemName || isNaN(weight) || weight <= 0) {
+                showCustomMessageBox('বার্তা (Message)', 'বৈধ উপাদানের নাম এবং অবশিষ্ট স্টকের জন্য ধনাত্মক ওজন প্রবেশ করান। (Please enter a valid item name and positive weight for remaining stock.)', false);
+                return;
+            }
+
+            try {
+                const q = query(collection(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`), where("itemName", "==", itemName));
+                const querySnapshot = await getDocs(q);
+
+                if (!querySnapshot.empty) {
+                    // Item exists, update it
+                    const docToUpdate = querySnapshot.docs[0];
+                    await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`, docToUpdate.id), {
+                        remainingWeight: docToUpdate.data().remainingWeight + weight, // Add to existing weight
+                        timestamp: new Date()
+                    });
+                    showCustomMessageBox('বার্তা (Message)', `'${itemName}' এর স্টক আপডেট করা হয়েছে। (Stock for '${itemName}' updated.)`, false);
+                } else {
+                    // Item does not exist, add new
+                    await addDoc(collection(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`), {
+                        itemName: itemName,
+                        remainingWeight: weight,
+                        unit: unit,
+                        timestamp: new Date()
+                    });
+                    showCustomMessageBox('বার্তা (Message)', `'${itemName}' অবশিষ্ট স্টকে যোগ করা হয়েছে। ( '${itemName}' added to remaining stock.)`, false);
+                }
+
+                // Clear form fields after successful addition/update
+                remainsItemNameInput.value = '';
+                remainsWeightInput.value = '';
+                remainsUnitSelect.value = 'grams';
+                // loadRemainingIngredients() is already using onSnapshot, so UI will auto-update
+            } catch (e) {
+                console.error("অবশিষ্ট স্টক যোগ/আপডেট করতে ত্রুটি:", e);
+                showCustomMessageBox('বার্তা (Message)', 'অবশিষ্ট স্টক যোগ/আপডেট করতে ব্যর্থ হয়েছে। (Failed to add/update remaining stock.)', false);
+            }
+        });
+
+        // Loads and displays remaining ingredients
+        function loadRemainingIngredients() {
+            if (!db || !userId) return;
+
+            const q = collection(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`);
+            onSnapshot(q, (snapshot) => {
+                currentRemainsList.innerHTML = ''; // Clear existing list
+                if (snapshot.empty) {
+                    noRemainsMessage.classList.remove('hidden');
+                } else {
+                    noRemainsMessage.classList.add('hidden');
+                    snapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        const remainItem = document.createElement('div');
+                        remainItem.className = 'flex justify-between items-center p-3 bg-gray-100 rounded-lg shadow-sm';
+                        // Displaying item name, weight/unit, and last updated date
+                        const displayDate = data.timestamp ? new Date(data.timestamp.seconds * 1000).toLocaleDateString() : 'N/A';
+                        remainItem.innerHTML = `
+                            <span class="font-medium text-gray-800">${data.itemName}</span>
+                            <span class="text-gray-600">${data.remainingWeight} ${data.unit} (আপডেট: ${displayDate})</span>
+                            <button data-id="${docSnap.id}" class="delete-remain-btn text-red-500 hover:text-red-700 text-lg font-bold transition-transform transform hover:scale-110">
+                                &times;
+                            </button>
+                        `;
+                        currentRemainsList.appendChild(remainItem);
+                    });
+
+                    // Add event listeners for delete buttons
+                    currentRemainsList.querySelectorAll('.delete-remain-btn').forEach(button => {
+                        button.addEventListener('click', async (event) => {
+                            const docId = event.target.dataset.id;
+                            try {
+                                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`, docId));
+                                showCustomMessageBox('বার্তা (Message)', 'অবশিষ্ট উপাদান সফলভাবে মুছে ফেলা হয়েছে। (Remaining ingredient deleted successfully.)', false);
+                            } catch (e) {
+                                console.error("অবশিষ্ট উপাদান মুছে ফেলতে ত্রুটি:", e);
+                                showCustomMessageBox('বার্তা (Message)', 'আইটেম মুছে ফেলতে ত্রুটি হয়েছে। আবার চেষ্টা করুন। (Error deleting item. Please try again.)', false);
+                            }
+                        });
+                    });
+                }
+            }, (error) => {
+                console.error("অবশিষ্ট উপাদান ফেচ করতে ত্রুটি:", error);
+                currentRemainsList.innerHTML = `<p class="text-red-500 text-center">অবশিষ্ট আইটেম লোড করতে ত্রুটি। (Error loading remaining items.)</p>`;
+            });
+        }
+
+        // --- Remaining Ingredient Notification Logic ---
+        let currentModalInput = null; // To store the input field that triggered the modal
+
+        async function checkRemainingIngredient(ingredientName, inputElement) {
+            if (!db || !userId) return;
+
+            const q = query(
+                collection(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`),
+                where("itemName", "==", ingredientName)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const remainingData = querySnapshot.docs[0].data();
+                const docId = querySnapshot.docs[0].id; // Get the document ID for updating/deleting
+
+                currentModalInput = inputElement; // Store reference to the input field
+                modalMessage.innerHTML = `আপনার কাছে ইনভেন্টরিতে <strong>${remainingData.itemName}</strong> এর <strong>${remainingData.remainingWeight} ${remainingData.unit}</strong> অবশিষ্ট আছে। এই পরিমাণ কি এই প্ল্যানে অ্যাডজাস্ট করতে চান এবং ইনভেন্টরি থেকে ব্যবহার করতে চান? (You have <strong>${remainingData.remainingWeight} ${remainingData.unit}</strong> of <strong>${remainingData.itemName}</strong> remaining in inventory. Do you want to adjust this amount in your current plan and consume it from inventory?)`;
+                
+                // Show modal with Yes/No buttons
+                remainingModal.classList.add('active');
+                modalYesBtn.classList.remove('hidden'); // Ensure Yes/No buttons are visible
+                modalNoBtn.classList.remove('hidden');
+
+                // Set up button listeners for the modal
+                modalYesBtn.onclick = async () => {
+                    if (currentModalInput) {
+                        const ingredientRow = currentModalInput.closest('.ingredient-row');
+                        const weightInput = ingredientRow.querySelector('[name="ingredientWeight"]');
+                        weightInput.value = remainingData.remainingWeight; // Pre-fill with remaining amount
+
+                        try {
+                            await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`, docId));
+                            console.log("অবশিষ্ট আইটেম ইনভেন্টরি থেকে ব্যবহার করা হয়েছে। (Remaining item consumed from inventory.)");
+                            loadRemainingIngredients(); // Refresh the remaining list
+                        } catch (e) {
+                            console.error("অবশিষ্ট আইটেম ব্যবহার করতে ত্রুটি:", e);
+                        }
+                        calculateTotalWeeklyCost(); // Recalculate cost
+                    }
+                    remainingModal.classList.remove('active');
+                    // Restore original modal content for next use or hide specific buttons
+                    modalYesBtn.classList.add('hidden');
+                    modalNoBtn.classList.add('hidden');
+                };
+
+                modalNoBtn.onclick = () => {
+                    remainingModal.classList.remove('active');
+                    currentModalInput = null; // Clear reference
+                    // Restore original modal content for next use or hide specific buttons
+                    modalYesBtn.classList.add('hidden');
+                    modalNoBtn.classList.add('hidden');
+                };
+            }
+        }
+
+        // Custom message box function (replaces alert())
+        // `showConfirmButtons` param is true by default, if false, it shows a single close button.
+        function showCustomMessageBox(title, message, showConfirmButtons = false) {
+            const modalOverlay = document.getElementById('remainingModal');
+            const modalContent = modalOverlay.querySelector('.modal-content');
+            
+            modalContent.querySelector('h3').textContent = title;
+            modalContent.querySelector('#modalMessage').innerHTML = message;
+
+            const modalButtonsDiv = modalOverlay.querySelector('.modal-buttons');
+            modalButtonsDiv.innerHTML = ''; // Clear existing buttons
+
+            if (showConfirmButtons) {
+                // Re-add Yes/No buttons
+                const yesBtn = document.createElement('button');
+                yesBtn.id = 'modalYesBtn';
+                yesBtn.className = 'btn btn-primary';
+                yesBtn.textContent = 'হ্যাঁ (Yes)';
+                modalButtonsDiv.appendChild(yesBtn);
+
+                const noBtn = document.createElement('button');
+                noBtn.id = 'modalNoBtn';
+                noBtn.className = 'btn btn-secondary';
+                noBtn.textContent = 'না (No)';
+                modalButtonsDiv.appendChild(noBtn);
+
+                // These onclicks should be set by the caller if they need specific logic
+                // For general messages, we only need a close button.
+            } else {
+                // Add a single Close button
+                const closeBtn = document.createElement('button');
+                closeBtn.id = 'modalCloseBtn';
+                closeBtn.className = 'btn btn-primary';
+                closeBtn.textContent = 'বন্ধ করুন (Close)';
+                modalButtonsDiv.appendChild(closeBtn);
+
+                closeBtn.onclick = () => {
+                    modalOverlay.classList.remove('active');
+                };
+            }
+            modalOverlay.classList.add('active');
+        }
+
+
+        // --- Product Type Display and Search Logic ---
+        let currentProductRangeStartDate = null;
+        let currentProductRangeEndDate = null;
+
+        async function displayProductTypesForRange(startDate, endDate, rangeLabel) {
+            if (!db || !userId) return;
+
+            currentProductRangeStartDate = startDate;
+            currentProductRangeEndDate = endDate;
+            productTypeRangeText.textContent = `${rangeLabel} (${formatDate(startDate)} - ${formatDate(endDate)})`;
+
+            // Clear previous content and show loading or "no data" message
+            lastWeekProductTypesDiv.innerHTML = `<p class="text-gray-500 text-center">ডেটা লোড হচ্ছে... (Loading data...)</p>`;
+            noLastWeekDataMessage.classList.add('hidden'); // Hide the general no data message initially
+
+            const q = query(
+                collection(db, `artifacts/${appId}/users/${userId}/weekly_plans`),
+                where("startDate", ">=", startDate),
+                where("startDate", "<=", endDate) // Use <= for endDate to include plans starting on the end date
+            );
+
+            onSnapshot(q, (snapshot) => {
+                lastWeekProductTypesDiv.innerHTML = ''; // Clear previous content
+                const productNames = new Set();
+                let hasData = false;
+
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    if (data.products && Array.isArray(data.products)) {
+                        data.products.forEach(product => {
+                            if (product.productName) {
+                                productNames.add(product.productName);
+                                hasData = true;
+                            }
+                        });
+                    }
+                });
+
+                if (hasData) {
+                    noLastWeekDataMessage.classList.add('hidden');
+                    productNames.forEach(name => {
+                        const p = document.createElement('p');
+                        p.className = 'bg-blue-50 border border-blue-200 p-2 rounded-md';
+                        p.textContent = name;
+                        lastWeekProductTypesDiv.appendChild(p);
+                    });
+                } else {
+                    noLastWeekDataMessage.classList.remove('hidden');
+                    lastWeekProductTypesDiv.innerHTML = ''; // Ensure no items are shown if empty
+                }
+            }, (error) => {
+                console.error("পণ্যের ধরণ ফেচ করতে ত্রুটি:", error);
+                lastWeekProductTypesDiv.innerHTML = `<p class="text-red-500 text-center">ডেটা লোড করতে ত্রুটি। (Error loading data.)</p>`;
+            });
+        }
+
+        // Event listener for custom date range search
+        searchProductBtn.addEventListener('click', () => {
+            const searchStartDate = searchStartDateInput.value;
+            const searchEndDate = searchEndDateInput.value;
+
+            if (!searchStartDate || !searchEndDate) {
+                showCustomMessageBox('বার্তা (Message)', 'অনুসন্ধানের জন্য শুরুর এবং শেষের তারিখ উভয়ই নির্বাচন করুন। (Please select both start and end dates for the search.)', false);
+                return;
+            }
+
+            const sDate = new Date(searchStartDate);
+            const eDate = new Date(searchEndDate);
+            displayProductTypesForRange(sDate, eDate, 'অনুসন্ধানের ফলাফল');
+        });
+
+        // Event listener for "Last 10 Days" button
+        last10DaysBtn.addEventListener('click', () => {
+            const now = new Date();
+            const tenDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 10);
+            displayProductTypesForRange(tenDaysAgo, now, 'গত ১০ দিনের পণ্যের ধরণ');
+            searchStartDateInput.value = formatDate(tenDaysAgo);
+            searchEndDateInput.value = formatDate(now);
+        });
+
+        // Event listener to open product details modal when header is clicked
+        lastWeekProductTypesHeader.addEventListener('click', () => {
+            // Use the currently displayed range for the detailed view
+            if (currentProductRangeStartDate && currentProductRangeEndDate) {
+                openProductDetailsModal(currentProductRangeStartDate, currentProductRangeEndDate);
+            } else {
+                showCustomMessageBox('বার্তা (Message)', 'বিস্তারিত ডেটা দেখার জন্য প্রথমে একটি ডেট রেঞ্জ নির্বাচন করুন। (Please select a date range first to view detailed data.)', false);
+            }
+        });
+
+        productDetailsModalCloseBtn.addEventListener('click', () => {
+            productDetailsModal.classList.remove('active');
+        });
+
+        // Function to open and populate the product details modal
+        async function openProductDetailsModal(startDate, endDate) {
+            if (!db || !userId) return;
+
+            productDetailsTableContainer.innerHTML = `<p class="text-center text-gray-500">ডেটা লোড হচ্ছে... (Loading data...)</p>`;
+            noProductDetailsDataMessage.classList.add('hidden');
+
+            const q = query(
+                collection(db, `artifacts/${appId}/users/${userId}/weekly_plans`),
+                where("startDate", ">=", startDate),
+                where("startDate", "<=", endDate)
+            );
+
+            try {
+                const querySnapshot = await getDocs(q); // Use getDocs for a one-time fetch for the modal
+
+                const productSummaries = {};
+
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    if (data.products && Array.isArray(data.products)) {
+                        data.products.forEach(product => {
+                            const productName = product.productName;
+                            const totalQuantity = product.totalQuantity || 0;
+                            const productTotalCost = product.productTotalCost || 0;
+
+                            let totalIngredientQuantity = 0;
+                            if (product.ingredients && Array.isArray(product.ingredients)) {
+                                product.ingredients.forEach(ingredient => {
+                                    totalIngredientQuantity += (ingredient.weight || 0);
+                                });
+                            }
+
+                            if (!productSummaries[productName]) {
+                                productSummaries[productName] = {
+                                    totalQuantity: 0,
+                                    totalIngredientQuantity: 0,
+                                    totalCost: 0
+                                };
+                            }
+                            productSummaries[productName].totalQuantity += totalQuantity;
+                            productSummaries[productName].totalIngredientQuantity += totalIngredientQuantity * totalQuantity; // Sum of ingredient weight * product quantity
+                            productSummaries[productName].totalCost += productTotalCost;
+                        });
+                    }
+                });
+
+                if (Object.keys(productSummaries).length > 0) {
+                    noProductDetailsDataMessage.classList.add('hidden');
+                    let tableHTML = `
+                        <table class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th>পণ্যের নাম (Product Name)</th>
+                                    <th>মোট পণ্যের পরিমাণ (Total Product Quantity)</th>
+                                    <th>মোট উপাদানের পরিমাণ (Total Ingredient Quantity)</th>
+                                    <th>মোট খরচ (Total Cost)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    for (const productName in productSummaries) {
+                        const summary = productSummaries[productName];
+                        tableHTML += `
+                            <tr>
+                                <td>${productName}</td>
+                                <td>${summary.totalQuantity}</td>
+                                <td>${summary.totalIngredientQuantity.toFixed(2)}</td>
+                                <td>৳${summary.totalCost.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    }
+                    tableHTML += `</tbody></table>`;
+                    productDetailsTableContainer.innerHTML = tableHTML;
+                } else {
+                    noProductDetailsDataMessage.classList.remove('hidden');
+                    productDetailsTableContainer.innerHTML = '';
+                }
+
+                productDetailsModal.classList.add('active'); // Show the modal
+            } catch (error) {
+                console.error("পণ্যের বিস্তারিত ডেটা ফেচ করতে ত্রুটি:", error);
+                productDetailsTableContainer.innerHTML = `<p class="text-red-500 text-center">বিস্তারিত ডেটা লোড করতে ত্রুটি। (Error loading detailed data.)</p>`;
+                noProductDetailsDataMessage.classList.add('hidden'); // Hide the generic no data message
+                productDetailsModal.classList.add('active'); // Still show modal, but with error
+            }
+        }
+    </script>
+</body>
+</html>
