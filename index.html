@@ -539,7 +539,7 @@
 
         // --- Helper Functions ---
 
-        // Formats date to YYYY-MM-DD
+        // Formats date to Überblick-MM-DD
         function formatDate(date) {
             const d = new Date(date);
             const year = d.getFullYear();
@@ -1216,19 +1216,27 @@
                     currentRemainingDocId = remainingDocSnap.id; // Store the document ID
                     currentModalInput = inputElement; // Store reference to the input field
 
-                    const lastUpdatedDate = currentRemainingData.timestamp ? new Date(currentRemainingData.timestamp.seconds * 1000).toLocaleDateString() : 'N/A';
+                    // Simplified message
+                    const message = `আপনার ইনভেন্টরিতে <strong>${currentRemainingData.itemName}</strong> এর অবশিষ্ট স্টক আছে। আপনি কি এই প্ল্যানে এটি ব্যবহার করতে চান এবং ইনভেন্টরি থেকে অ্যাডজাস্ট করতে চান? (You have remaining stock of <strong>${currentRemainingData.itemName}</strong> in your inventory. Do you want to use it for this plan and adjust from inventory?)`;
                     
-                    const message = `আপনার কাছে ইনভেন্টরিতে <strong>${currentRemainingData.itemName}</strong> এর <strong>${currentRemainingData.remainingWeight} ${currentRemainingData.unit}</strong> অবশিষ্ট আছে, যা ${lastUpdatedDate} তারিখে আপডেট করা হয়েছিল। এই পরিমাণ কি এই প্ল্যানে অ্যাডজাস্ট করতে চান এবং ইনভেন্টরি থেকে ব্যবহার করতে চান? (You have <strong>${currentRemainingData.remainingWeight} ${currentRemainingData.unit}</strong> of <strong>${currentRemainingData.itemName}</strong> remaining in inventory, last updated on ${lastUpdatedDate}. Do you want to adjust this amount in your current plan and consume it from inventory?)`;
-                    
-                    showCustomMessageBox('বার্তা (Message)', message, true); // Pass the message to the showCustomMessageBox directly
+                    showCustomMessageBox('বার্তা (Message)', message, true); // Pass the simplified message
 
                     // Set up event handlers for the dynamically created Yes/No buttons
                     document.getElementById('modalYesBtn').onclick = async () => {
                         try {
                             if (currentModalInput && currentRemainingData && currentRemainingDocId) {
                                 // Set the input field value to the remaining quantity
-                                currentModalInput.value = currentRemainingData.remainingWeight;
-                                currentModalInput.dispatchEvent(new Event('input')); // Trigger input event to recalculate cost
+                                // Assuming the inputElement is the quantity/weight input for the ingredient
+                                const weightInput = currentModalInput.closest('.ingredient-row').querySelector('[name="ingredientWeight"]');
+                                if (weightInput) {
+                                    weightInput.value = currentRemainingData.remainingWeight;
+                                    weightInput.dispatchEvent(new Event('input')); // Trigger input event to recalculate cost
+                                } else {
+                                    // Fallback if weightInput not found (e.g., if inputElement was itemName field)
+                                    currentModalInput.value = currentRemainingData.remainingWeight;
+                                    currentModalInput.dispatchEvent(new Event('input'));
+                                }
+                                
 
                                 // Delete the remaining ingredient from Firestore
                                 await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`, currentRemainingDocId));
