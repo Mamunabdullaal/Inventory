@@ -380,7 +380,7 @@
                     <!-- Last week's product types will be listed here by JS -->
                 </div>
                 <button id="downloadPdfBtn" class="w-full btn btn-primary mt-6 py-3 px-6 rounded-lg text-lg hidden">
-                    শপিং লিস্ট PDF ডাউনলোড করুন (Download Shopping List PDF)
+                    পণ্যের বিস্তারিত তালিকা PDF ডাউনলোড করুন (Download Product Details PDF)
                 </button>
             </div>
         </div>
@@ -480,7 +480,8 @@
         const noSavedPlansMessage = document.getElementById('noSavedPlansMessage');
 
         let productCount = 0; // To keep track of product blocks
-        let currentProductRangeData = []; // Store the full product data for the currently displayed range for PDF
+        // Store the full, aggregated product data for the currently displayed range for PDF
+        let currentDetailedProductsForPdf = []; 
 
         // --- Firebase Initialization and Auth ---
         window.onload = async () => {
@@ -965,7 +966,7 @@
                 lastWeekProductTypesDiv.innerHTML = ''; // Clear previous content
                 const productNames = new Set();
                 let hasData = false;
-                currentProductRangeData = []; // Reset stored data
+                currentDetailedProductsForPdf = []; // Reset stored data for PDF
 
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
@@ -975,8 +976,18 @@
                                 productNames.add(product.productName);
                                 hasData = true;
                             }
+                            // Aggregate quantities and costs for products with the same name across different plans for PDF data
+                            const existingProduct = currentDetailedProductsForPdf.find(p => p.productName === product.productName);
+                            if (existingProduct) {
+                                existingProduct.totalQuantity += (product.totalQuantity || 0);
+                                existingProduct.productTotalCost += (product.productTotalCost || 0);
+                                // For ingredients, if same product name, we assume same ingredients per unit.
+                                // If ingredients can differ for same named products, a more complex merge/list is needed.
+                                // For simplicity here, we'll keep the ingredients from the first found product.
+                            } else {
+                                currentDetailedProductsForPdf.push({ ...product }); // Add a copy of the product data
+                            }
                         });
-                        currentProductRangeData.push(...data.products); // Store all products from all plans in this range
                     }
                 });
 
@@ -1189,8 +1200,8 @@
 
         // --- PDF Generation Logic ---
         downloadPdfBtn.addEventListener('click', async () => {
-            if (!currentProductRangeStartDate || !currentProductRangeEndDate) {
-                showCustomMessageBox('বার্তা (Message)', 'শপিং লিস্ট ডাউনলোড করতে একটি ডেট রেঞ্জ নির্বাচন করুন। (Please select a date range to download the shopping list.)', false);
+            if (!currentProductRangeStartDate || !currentProductRangeEndDate || currentDetailedProductsForPdf.length === 0) {
+                showCustomMessageBox('বার্তা (Message)', 'পিডিএফ ডাউনলোড করতে একটি ডেট রেঞ্জ নির্বাচন করুন এবং ডেটা লোড করুন। (Please select a date range and load data to download PDF.)', false);
                 return;
             }
 
@@ -1198,64 +1209,78 @@
             const startStr = formatDate(currentProductRangeStartDate);
             const endStr = formatDate(currentProductRangeEndDate);
 
-            doc.setFont('Inter', 'normal'); // Set a common font for PDF
+            // PDF Title
+            doc.setFontSize(16);
+            doc.text(`Product Details List (পণ্যের বিস্তারিত তালিকা)`, 14, 20);
+            doc.setFontSize(12);
+            doc.text(`For Dates: ${startStr} - ${endStr}`, 14, 28);
 
-            doc.text(`শপিং লিস্ট (${startStr} - ${endStr})`, 14, 20); // Title for the PDF
 
-            const allIngredients = {}; // Consolidated ingredients for shopping list
-
-            // Aggregate ingredients from all products in the current range
-            // currentProductRangeData contains all product objects from all plans in the selected range
-            currentProductRangeData.forEach(product => {
-                const productQuantity = product.totalQuantity || 0;
-                product.ingredients.forEach(ingredient => {
-                    const itemName = ingredient.itemName.toLowerCase();
-                    const weight = parseFloat(ingredient.weight) || 0;
-                    const unit = ingredient.unit;
-
-                    // Create a unique key that combines item name and unit
-                    const key = `${itemName}-${unit}`;
-
-                    if (!allIngredients[key]) {
-                        allIngredients[key] = {
-                            itemName: ingredient.itemName,
-                            totalWeight: 0,
-                            unit: unit
-                        };
-                    }
-                    allIngredients[key].totalWeight += (weight * productQuantity); // Summing up total quantity per item
-                });
-            });
-
+            const tableColumn = [
+                "Product Name (পণ্যের নাম)",
+                "Total Quantity (মোট পরিমাণ)",
+                "Total Cost (মোট খরচ)",
+                "Ingredients List (উপাদান সমূহ)"
+            ];
             const tableRows = [];
-            for (const key in allIngredients) {
-                const item = allIngredients[key];
-                tableRows.push([item.itemName, `${item.totalWeight.toFixed(2)} ${item.unit}`]);
-            }
 
-            // Sort table rows alphabetically by item name
-            tableRows.sort((a, b) => a[0].localeCompare(b[0]));
+            currentDetailedProductsForPdf.forEach(product => {
+                let ingredientsListText = '';
+                if (product.ingredients && Array.isArray(product.ingredients) && product.ingredients.length > 0) {
+                    ingredientsListText = product.ingredients.map(ing =>
+                        `${ing.itemName}: ${ing.weight} ${ing.unit} (৳${ing.price.toFixed(2)})`
+                    ).join('\n'); // Use newline for ingredients list
+                } else {
+                    ingredientsListText = `No ingredients. (কোনো উপাদান নেই।)`;
+                }
+
+                tableRows.push([
+                    product.productName,
+                    product.totalQuantity.toString(),
+                    `৳${product.productTotalCost.toFixed(2)}`,
+                    ingredientsListText
+                ]);
+            });
 
             if (tableRows.length > 0) {
                 doc.autoTable({
-                    head: [['উপাদানের নাম (Ingredient Name)', 'মোট পরিমাণ (Total Quantity)']],
+                    head: [tableColumn],
                     body: tableRows,
-                    startY: 30,
+                    startY: 40, // Start table lower to accommodate title
                     styles: {
-                        font: 'Inter', // Use Inter font
-                        fontStyle: 'normal'
+                        font: 'Helvetica', // Using Helvetica for better compatibility with non-latin characters, though full Bengali support needs font embedding
+                        fontStyle: 'normal',
+                        fontSize: 9,
+                        cellPadding: 3,
+                        lineColor: 200, // Light grey borders
+                        lineWidth: 0.1,
+                        textColor: [51, 65, 85]
                     },
                     headStyles: {
                         fillColor: [240, 244, 248], // Light blue-gray background for header
                         textColor: [51, 65, 85], // Darker gray text
-                        fontStyle: 'bold'
+                        fontStyle: 'bold',
+                        halign: 'center' // Center header text
+                    },
+                    columnStyles: {
+                        0: {cellWidth: 'auto'}, // Product Name
+                        1: {cellWidth: 60, halign: 'center'}, // Total Quantity
+                        2: {cellWidth: 60, halign: 'right'}, // Total Cost
+                        3: {cellWidth: 'auto'} // Ingredients List (will expand)
+                    },
+                    didDrawCell: data => {
+                        // For Ingredients List column, ensure proper line breaks
+                        if (data.column.index === 3 && data.cell.text) {
+                            // autoTable generally handles newlines, but this hook can be used for custom rendering if needed
+                            // For now, it's illustrative; default autoTable handling is often sufficient.
+                        }
                     }
                 });
 
-                doc.save(`Shopping_List_${startStr}_to_${endStr}.pdf`);
-                showCustomMessageBox('বার্তা (Message)', 'শপিং লিস্ট PDF সফলভাবে ডাউনলোড হয়েছে। (Shopping list PDF downloaded successfully.)', false);
+                doc.save(`Product_Details_${startStr}_to_${endStr}.pdf`);
+                showCustomMessageBox('বার্তা (Message)', 'পণ্যের বিস্তারিত তালিকা PDF সফলভাবে ডাউনলোড হয়েছে। (Product details list PDF downloaded successfully.)', false);
             } else {
-                showCustomMessageBox('বার্তা (Message)', 'এই তারিখ পরিসরের জন্য কোনো শপিং লিস্ট ডেটা নেই। (No shopping list data for this date range.)', false);
+                showCustomMessageBox('বার্তা (Message)', 'এই তারিখ পরিসরের জন্য কোনো বিস্তারিত ডেটা নেই। (No detailed data for this date range.)', false);
             }
         });
 
