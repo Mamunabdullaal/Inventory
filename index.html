@@ -1054,7 +1054,7 @@
         async function openProductDetailsModal(startDate, endDate) {
             if (!db || !userId) return;
 
-            productDetailsTableContainer.innerHTML = `<p class="text-center text-gray-500">ডেটা লোড হচ্ছে... (Loading data...)</p>`;
+            productDetailsTableContainer.innerHTML = `<p class="text-center text-gray-500">Loading data...</p>`;
             noProductDetailsDataMessage.classList.add('hidden');
 
             const q = query(
@@ -1077,9 +1077,9 @@
                             if (existingProduct) {
                                 existingProduct.totalQuantity += (product.totalQuantity || 0);
                                 existingProduct.productTotalCost += (product.productTotalCost || 0);
-                                // For ingredients, we'll list them as they are defined per product,
-                                // not necessarily aggregate across products in this view.
-                                // If you need to aggregate ingredients across same named products, that's a separate logic.
+                                // For ingredients, if same product name, we assume same ingredients per unit.
+                                // If ingredients can differ for same named products, a more complex merge/list is needed.
+                                // For simplicity here, we'll keep the ingredients from the first found product.
                             } else {
                                 productsToShow.push({ ...product }); // Add a copy of the product data
                             }
@@ -1106,7 +1106,7 @@
                         let ingredientsListHtml = '';
                         if (product.ingredients && Array.isArray(product.ingredients) && product.ingredients.length > 0) {
                             ingredientsListHtml = product.ingredients.map(ing =>
-                                `<div class="ingredient-list-item">${ing.itemName}: ${ing.weight} ${ing.unit} (৳${ing.price})</div>`
+                                `<div class="ingredient-list-item">${ing.itemName}: ${ing.weight} ${ing.unit} (৳${ing.price.toFixed(2)})</div>`
                             ).join('');
                         } else {
                             ingredientsListHtml = `<div class="ingredient-list-item">No ingredients.</div>`;
