@@ -1,24 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Food Shop Inventory System</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">\
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* CSS Variables for theming */
+        :root {
+            --bg-body: #f0f4f8; /* Light blue-gray background */
+            --bg-container: #ffffff;
+            --bg-section: #f8fafc; /* For input groups and saved plans list */
+            --bg-planning-section: #e0f2fe; /* Light blue for planning section */
+            --text-primary: #1e40af; /* Dark blue for titles/important text */
+            --text-secondary: #334155; /* Medium gray for labels/general text */
+            --border-color: #cbd5e1;
+            --input-border-focus: #3b82f6;
+            --btn-primary-bg: #3b82f6;
+            --btn-primary-hover: #2563eb;
+            --btn-secondary-bg: #64748b;
+            --btn-secondary-hover: #475569;
+            --total-cost-display-bg: #e0f2fe;
+            --total-cost-display-text: #1e40af;
+            --yellow-section-bg: #fffbe6; /* Light yellow */
+            --yellow-section-border: #fef08a;
+            --yellow-section-text: #b45309; /* Darker yellow/orange for text */
+            --red-text: #ef4444;
+            --red-hover-text: #dc2626;
+            --green-text: #16a34a;
+            --gray-subtext: #475569;
+            --blue-subtext: #3b82f6;
+            --blue-hover-subtext: #2563eb;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #1a202c; /* Dark background */
+            --bg-container: #2d3748; /* Darker container */
+            --bg-section: #4a5568; /* Darker sections */
+            --bg-planning-section: #334155; /* Dark blue for planning section */
+            --text-primary: #e2e8f0; /* Light gray for titles/important text */
+            --text-secondary: #cbd5e1; /* Lighter gray for labels/general text */
+            --border-color: #718096;
+            --input-border-focus: #63b3ed;
+            --btn-primary-bg: #4299e1;
+            --btn-primary-hover: #3182ce;
+            --btn-secondary-bg: #718096;
+            --btn-secondary-hover: #a0aec0;
+            --total-cost-display-bg: #2b6cb0;
+            --total-cost-display-text: #e2e8f0;
+            --yellow-section-bg: #4a5568; /* Darker yellow for dark theme */
+            --yellow-section-border: #718096;
+            --yellow-section-text: #f6ad55; /* Orange for text */
+            --red-text: #fc8181;
+            --red-hover-text: #e53e3e;
+            --green-text: #68d391;
+            --gray-subtext: #a0aec0;
+            --blue-subtext: #63b3ed;
+            --blue-hover-subtext: #4299e1;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light blue-gray background */
+            background-color: var(--bg-body);
             display: flex;
             justify-content: center;
             align-items: flex-start; /* Align to top */
             min-height: 100vh;
             padding: 20px;
+            transition: background-color 0.3s ease;
         }
         .container {
-            background-color: #ffffff;
+            background-color: var(--bg-container);
             padding: 30px;
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
@@ -27,238 +81,220 @@
             display: grid;
             grid-template-columns: 1fr;
             gap: 30px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
         }
         @media (min-width: 1024px) {
             .container {
                 grid-template-columns: 2fr 1fr; /* Two columns on large screens */
             }
         }
+        /* Adjusted colors for specific elements */
+        .col-span-2.p-6.bg-blue-50 { /* Left planning column */
+            background-color: var(--bg-planning-section);
+            color: var(--text-secondary);
+            transition: background-color 0.3s ease;
+        }
+        .col-span-1.p-6.bg-gray-50 { /* Right insights column */
+            background-color: var(--bg-section);
+            color: var(--text-secondary);
+            transition: background-color 0.3s ease;
+        }
+
+        h2.text-3xl.font-bold {
+            color: var(--text-primary);
+            transition: color 0.3s ease;
+        }
+        h3.text-xl.font-semibold {
+            color: var(--text-primary);
+            transition: color 0.3s ease;
+        }
+        h4.text-md.font-semibold {
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
+        }
+
         .input-group label {
             font-weight: 600;
-            color: #334155;
+            color: var(--text-secondary);
             margin-bottom: 8px;
             display: block;
+            transition: color 0.3s ease;
         }
         .input-group input[type="date"],
         .input-group input[type="text"],
-        .input-group input[type="number"] {
-            border: 1px solid #cbd5e1;
+        .input-group input[type="number"],
+        .ingredient-row input, .ingredient-row select {
+            border: 1px solid var(--border-color);
             padding: 10px 15px;
             border-radius: 8px;
             width: 100%;
             box-sizing: border-box;
-            transition: border-color 0.2s;
+            background-color: var(--bg-container); /* Input background */
+            color: var(--text-secondary); /* Input text color */
+            transition: border-color 0.2s, background-color 0.3s ease, color 0.3s ease;
         }
         .input-group input:focus {
             outline: none;
-            border-color: #3b82f6; /* Blue focus ring */
+            border-color: var(--input-border-focus); /* Blue focus ring */
         }
         .btn {
             padding: 10px 20px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+            transition: background-color 0.2s, transform 0.1s, color 0.3s ease;
         }
         .btn-primary {
-            background-color: #3b82f6; /* Blue */
+            background-color: var(--btn-primary-bg);
             color: white;
             border: none;
         }
         .btn-primary:hover {
-            background-color: #2563eb; /* Darker blue */
+            background-color: var(--btn-primary-hover);
             transform: translateY(-1px);
         }
         .btn-secondary {
-            background-color: #64748b; /* Gray */
+            background-color: var(--btn-secondary-bg);
             color: white;
             border: none;
         }
         .btn-secondary:hover {
-            background-color: #475569; /* Darker gray */
+            background-color: var(--btn-secondary-hover);
             transform: translateY(-1px);
         }
-        .ingredient-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr) auto; /* Item, Weight, Unit, Price, Delete */
-            gap: 15px;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 10px;
-            background-color: #f8fafc;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
+        /* Specific button colors for Add Remaining Stock */
+        .btn.bg-yellow-500 {
+            background-color: #f59e0b; /* Tailwind yellow-500 */
         }
-        .ingredient-row input, .ingredient-row select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            box-sizing: border-box;
+        .btn.bg-yellow-500:hover {
+            background-color: #d97706; /* Tailwind yellow-600 */
+        }
+
+        .ingredient-row {
+            background-color: var(--bg-section);
+            border: 1px solid var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
         .total-cost-display {
-            background-color: #e0f2fe; /* Light blue */
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #1e40af; /* Dark blue */
-            text-align: center;
+            background-color: var(--total-cost-display-bg); /* Light blue */
+            color: var(--total-cost-display-text); /* Dark blue */
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
-        /* Modal Styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+        /* Message colors */
+        p.text-red-600 {
+            color: var(--red-text);
         }
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
+        p.text-green-600 {
+            color: var(--green-text);
         }
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 90%;
-            max-width: 450px; /* Default max-width for smaller modals */
-            text-align: center;
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
-            box-sizing: border-box; /* Ensure padding doesn't push width over max-width */
-        }
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
-        }
-        .modal-content h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: #1e40af;
-        }
-        .modal-content p {
-            font-size: 1.1rem;
-            margin-bottom: 25px;
-            color: #475569;
-        }
-        .modal-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-        .modal-buttons button {
-            flex: 1;
+        p.text-gray-500 {
+            color: var(--gray-subtext);
         }
 
-        /* Loading Spinner */
-        .loading-spinner {
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #3b82f6; /* Blue */
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
-            display: none; /* Hidden by default */
+        /* Remaining Stock & Manual Add section */
+        .p-4.bg-yellow-50 {
+            background-color: var(--yellow-section-bg);
+            border-color: var(--yellow-section-border);
+            color: var(--yellow-section-text);
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        h3.text-xl.font-semibold.text-yellow-800 {
+            color: var(--yellow-section-text);
+            transition: color 0.3s ease;
+        }
+        /* Adjusting text color for specific spans inside remainItem */
+        .flex.justify-between.items-center.p-3.bg-gray-100.rounded-lg.shadow-sm {
+            background-color: var(--bg-section);
+            color: var(--text-secondary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .remainItem span.font-medium.text-gray-800 {
+            color: var(--text-primary);
+        }
+        .remainItem span.text-gray-600 {
+            color: var(--text-secondary);
+        }
+        
+        .delete-remain-btn, .remove-ingredient-btn, .remove-product-btn {
+            color: var(--red-text);
+            transition: color 0.3s ease;
+        }
+        .delete-remain-btn:hover, .remove-ingredient-btn:hover, .remove-product-btn:hover {
+            color: var(--red-hover-text);
         }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* Product type range search section */
+        .p-4.bg-blue-50 {
+            background-color: var(--bg-planning-section);
+            border-color: var(--border-color);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
         }
-        .loading-spinner.active {
-            display: block;
-        }
-
-        /* Specific style for product details modal to be wider */
-        #productDetailsModal .modal-content {
-            max-width: 900px; /* Wider for table content */
-            text-align: left; /* Align text left for table */
-        }
-
-        #productDetailsModal table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        #productDetailsModal th, #productDetailsModal td {
-            border: 1px solid #e2e8f0;
-            padding: 10px;
-            text-align: left;
-            vertical-align: top; /* Align content to top for multi-line cells */
-        }
-
-        #productDetailsModal th {
-            background-color: #f0f4f8;
-            font-weight: 600;
-        }
-
-        #productDetailsModal tbody tr:nth-child(even) {
-            background-color: #f8fafc;
+        h3.text-xl.font-semibold.text-blue-800 {
+            color: var(--text-primary);
+            transition: color 0.3s ease;
         }
 
         .clickable-header {
-            cursor: pointer;
-            text-decoration: underline;
-            color: #3b82f6;
+            color: var(--blue-subtext);
+            transition: color 0.3s ease;
         }
         .clickable-header:hover {
-            color: #2563eb;
+            color: var(--blue-hover-subtext);
+        }
+        .bg-blue-50.border.border-blue-200.p-2.rounded-md {
+            background-color: var(--bg-planning-section);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* Modal specific styles */
+        .modal-content {
+            background-color: var(--bg-container);
+            color: var(--text-secondary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .modal-content h3 {
+            color: var(--text-primary);
+        }
+        .modal-content p {
+            color: var(--text-secondary);
+        }
+        #productDetailsModal th {
+            background-color: var(--bg-section);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        #productDetailsModal tbody tr:nth-child(even) {
+            background-color: var(--bg-planning-section);
+            transition: background-color 0.3s ease;
+        }
+        .ingredient-list-item {
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
         }
 
         .saved-plan-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background-color: #f8fafc;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 8px;
+            background-color: var(--bg-section);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+            transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
         .saved-plan-item span {
-            flex-grow: 1;
-            padding-right: 10px;
-            color: #334155;
-        }
-        .saved-plan-item .delete-plan-btn {
-            background: none;
-            border: none;
-            color: #ef4444; /* Red */
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: color 0.2s, transform 0.1s;
-        }
-        .saved-plan-item .delete-plan-btn:hover {
-            color: #dc2626; /* Darker red */
-            transform: scale(1.1);
+            color: var(--text-secondary);
         }
 
-        /* Styling for ingredient list within table cell */
-        .ingredient-list-item {
-            margin-bottom: 4px;
-            font-size: 0.9em;
-            color: #475569;
-        }
-        .ingredient-list-item:last-child {
-            margin-bottom: 0;
-        }
     </style>
 </head>
 <body class="bg-gray-100 flex items-start justify-center min-h-screen p-5">
     <div class="container bg-white p-8 rounded-xl shadow-lg flex flex-col lg:grid lg:grid-cols-3 gap-8">
+
+        <!-- Theme Toggle Buttons -->
+        <div class="col-span-3 flex justify-center gap-4 mb-4">
+            <button id="lightThemeBtn" class="btn btn-secondary px-6 py-2">Light Theme</button>
+            <button id="darkThemeBtn" class="btn btn-secondary px-6 py-2">Dark Theme</button>
+        </div>
 
         <!-- Left Column: Weekly Planning -->
         <div class="col-span-2 p-6 bg-blue-50 rounded-xl shadow-inner">
@@ -488,6 +524,10 @@
         // Store the full, aggregated product data for the currently displayed range for PDF
         let currentDetailedProductsForPdf = []; 
 
+        // Theme buttons
+        const lightThemeBtn = document.getElementById('lightThemeBtn');
+        const darkThemeBtn = document.getElementById('darkThemeBtn');
+
         // --- Firebase Initialization and Auth ---
         window.onload = async () => {
             try {
@@ -528,6 +568,9 @@
                 // Add initial product planning block
                 addProductBlock();
                 calculateTotalWeeklyCost(); // Initial calculation
+
+                // Apply saved theme or default to system preference
+                applyThemeFromLocalStorage();
             } catch (error) {
                 console.error("Error initializing Firebase or during authentication:", error);
                 // Display error message to user if necessary
@@ -536,6 +579,36 @@
                 saveMessage.classList.add('text-red-600');
             }
         };
+
+        // --- Theme Switching Logic ---
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+        }
+
+        function applyThemeFromLocalStorage() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                applyTheme(savedTheme);
+            } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                // Default to dark theme if system preference is dark
+                applyTheme('dark');
+            } else {
+                // Default to light theme
+                applyTheme('light');
+            }
+        }
+
+        lightThemeBtn.addEventListener('click', () => applyTheme('light'));
+        darkThemeBtn.addEventListener('click', () => applyTheme('dark'));
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (!localStorage.getItem('theme')) { // Only react if user hasn't manually set a theme
+                applyTheme(event.matches ? 'dark' : 'light');
+            }
+        });
+
 
         // --- Helper Functions ---
 
