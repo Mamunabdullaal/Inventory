@@ -438,6 +438,11 @@
 
         const appId = firebaseConfig.projectId; // Use projectId as appId for consistency with Firestore path
 
+        // Global variables to store temporary data for modal interaction
+        let currentModalInput = null;
+        let currentRemainingDocId = null;
+        let currentRemainingData = null;
+
         // HTML elements
         const productsContainer = document.getElementById('productsContainer');
         const addProductBtn = document.getElementById('addProductBtn');
@@ -467,8 +472,8 @@
 
         const remainingModal = document.getElementById('remainingModal');
         const modalMessage = document.getElementById('modalMessage');
-        const modalYesBtn = document.getElementById('modalYesBtn');
-        const modalNoBtn = document.getElementById('modalNoBtn');
+        // modalYesBtn and modalNoBtn references are dynamic, retrieved within showCustomMessageBox or its callers
+        // as they are re-created each time confirm buttons are needed.
 
         const productDetailsModal = document.getElementById('productDetailsModal');
         const productDetailsTableContainer = document.getElementById('productDetailsTableContainer');
@@ -1198,92 +1203,62 @@
             });
         }
 
-        // --- PDF Generation Logic ---
-        downloadPdfBtn.addEventListener('click', async () => {
-            if (!currentProductRangeStartDate || !currentProductRangeEndDate || currentDetailedProductsForPdf.length === 0) {
-                showCustomMessageBox('Message', 'Please select a date range and load data to download PDF.', false);
-                return;
-            }
+        // --- Check Remaining Ingredient (POPUP Logic) ---
+        async function checkRemainingIngredient(itemName, inputElement) {
+            if (!db || !userId) return;
+            try {
+                const q = query(collection(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`), where("itemName", "==", itemName));
+                const querySnapshot = await getDocs(q);
 
-            const doc = new jspdf.jsPDF();
-            const startStr = formatDate(currentProductRangeStartDate);
-            const endStr = formatDate(currentProductRangeEndDate);
+                if (!querySnapshot.empty) {
+                    const remainingDocSnap = querySnapshot.docs[0];
+                    currentRemainingData = remainingDocSnap.data(); // Store the data
+                    currentRemainingDocId = remainingDocSnap.id; // Store the document ID
+                    currentModalInput = inputElement; // Store reference to the input field
 
-            // PDF Title
-            doc.setFontSize(16);
-            doc.text(`Product Details List`, 14, 20);
-            doc.setFontSize(12);
-            doc.text(`For Dates: ${startStr} - ${endStr}`, 14, 28);
+                    const lastUpdatedDate = currentRemainingData.timestamp ? new Date(currentRemainingData.timestamp.seconds * 1000).toLocaleDateString() : 'N/A';
+                    
+                    const message = `আপনার কাছে ইনভেন্টরিতে <strong>${currentRemainingData.itemName}</strong> এর <strong>${currentRemainingData.remainingWeight} ${currentRemainingData.unit}</strong> অবশিষ্ট আছে, যা ${lastUpdatedDate} তারিখে আপডেট করা হয়েছিল। এই পরিমাণ কি এই প্ল্যানে অ্যাডজাস্ট করতে চান এবং ইনভেন্টরি থেকে ব্যবহার করতে চান? (You have <strong>${currentRemainingData.remainingWeight} ${currentRemainingData.unit}</strong> of <strong>${currentRemainingData.itemName}</strong> remaining in inventory, last updated on ${lastUpdatedDate}. Do you want to adjust this amount in your current plan and consume it from inventory?)`;
+                    
+                    showCustomMessageBox('বার্তা (Message)', message, true); // Pass the message to the showCustomMessageBox directly
 
+                    // Set up event handlers for the dynamically created Yes/No buttons
+                    document.getElementById('modalYesBtn').onclick = async () => {
+                        try {
+                            if (currentModalInput && currentRemainingData && currentRemainingDocId) {
+                                // Set the input field value to the remaining quantity
+                                currentModalInput.value = currentRemainingData.remainingWeight;
+                                currentModalInput.dispatchEvent(new Event('input')); // Trigger input event to recalculate cost
 
-            const tableColumn = [
-                "Product Name",
-                "Total Quantity",
-                "Total Cost",
-                "Ingredients List"
-            ];
-            const tableRows = [];
-
-            currentDetailedProductsForPdf.forEach(product => {
-                let ingredientsListText = '';
-                if (product.ingredients && Array.isArray(product.ingredients) && product.ingredients.length > 0) {
-                    ingredientsListText = product.ingredients.map(ing =>
-                        `${ing.itemName}: ${ing.weight} ${ing.unit} (৳${ing.price.toFixed(2)})`
-                    ).join('\n'); // Use newline for ingredients list
-                } else {
-                    ingredientsListText = `No ingredients.`;
-                }
-
-                tableRows.push([
-                    product.productName,
-                    product.totalQuantity.toString(),
-                    `৳${product.productTotalCost.toFixed(2)}`,
-                    ingredientsListText
-                ]);
-            });
-
-            if (tableRows.length > 0) {
-                doc.autoTable({
-                    head: [tableColumn],
-                    body: tableRows,
-                    startY: 40, // Start table lower to accommodate title
-                    styles: {
-                        font: 'Helvetica', // Using Helvetica for better compatibility with non-latin characters
-                        fontStyle: 'normal',
-                        fontSize: 9,
-                        cellPadding: 3,
-                        lineColor: 200, // Light grey borders
-                        lineWidth: 0.1,
-                        textColor: [51, 65, 85]
-                    },
-                    headStyles: {
-                        fillColor: [240, 244, 248], // Light blue-gray background for header
-                        textColor: [51, 65, 85], // Darker gray text
-                        fontStyle: 'bold',
-                        halign: 'center' // Center header text
-                    },
-                    columnStyles: {
-                        0: {cellWidth: 'auto'}, // Product Name
-                        1: {cellWidth: 60, halign: 'center'}, // Total Quantity
-                        2: {cellWidth: 60, halign: 'right'}, // Total Cost
-                        3: {cellWidth: 'auto'} // Ingredients List (will expand)
-                    },
-                    didDrawCell: data => {
-                        // For Ingredients List column, ensure proper line breaks
-                        if (data.column.index === 3 && data.cell.text) {
-                            // autoTable generally handles newlines, but this hook can be used for custom rendering if needed
-                            // For now, it's illustrative; default autoTable handling is often sufficient.
+                                // Delete the remaining ingredient from Firestore
+                                await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/remaining_ingredients`, currentRemainingDocId));
+                                
+                                showCustomMessageBox('বার্তা (Message)', `প্ল্যানে '${currentRemainingData.itemName}' যোগ করা হয়েছে এবং ইনভেন্টরি থেকে ব্যবহার করা হয়েছে। ( '${currentRemainingData.itemName}' added to plan and consumed from inventory.)`, false);
+                            }
+                        } catch (e) {
+                            console.error("Error consuming remaining ingredient:", e);
+                            showCustomMessageBox('বার্তা (Message)', 'ইনভেন্টরি থেকে উপাদান ব্যবহার করতে ব্যর্থ। (Failed to consume ingredient from inventory.)', false);
+                        } finally {
+                            remainingModal.classList.remove('active');
+                            currentModalInput = null; // Clear global references
+                            currentRemainingDocId = null;
+                            currentRemainingData = null;
                         }
-                    }
-                });
+                    };
 
-                doc.save(`Product_Details_${startStr}_to_${endStr}.pdf`);
-                showCustomMessageBox('Message', 'Product details list PDF downloaded successfully.', false);
-            } else {
-                showCustomMessageBox('Message', 'No detailed data for this date range.', false);
+                    document.getElementById('modalNoBtn').onclick = () => {
+                        remainingModal.classList.remove('active');
+                        currentModalInput = null; // Clear global references
+                        currentRemainingDocId = null;
+                        currentRemainingData = null;
+                    };
+
+                }
+            } catch (e) {
+                console.error("Error checking remaining ingredient:", e);
+                // Optionally show a message to the user about the error, but usually silent for this check
             }
-        });
-
+        }
     </script>
 </body>
 </html>
