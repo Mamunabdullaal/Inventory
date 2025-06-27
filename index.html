@@ -197,6 +197,7 @@
             border: 1px solid #e2e8f0;
             padding: 10px;
             text-align: left;
+            vertical-align: top; /* Align content to top for multi-line cells */
         }
 
         #productDetailsModal th {
@@ -243,6 +244,16 @@
         .saved-plan-item .delete-plan-btn:hover {
             color: #dc2626; /* Darker red */
             transform: scale(1.1);
+        }
+
+        /* Styling for ingredient list within table cell */
+        .ingredient-list-item {
+            margin-bottom: 4px;
+            font-size: 0.9em;
+            color: #475569;
+        }
+        .ingredient-list-item:last-child {
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -368,6 +379,9 @@
                     <p id="noLastWeekData" class="text-gray-500 text-center">অনুসন্ধান করুন অথবা ডেটা পাওয়া যায়নি (Search or No data found).</p>
                     <!-- Last week's product types will be listed here by JS -->
                 </div>
+                <button id="downloadPdfBtn" class="w-full btn btn-primary mt-6 py-3 px-6 rounded-lg text-lg hidden">
+                    শপিং লিস্ট PDF ডাউনলোড করুন (Download Shopping List PDF)
+                </button>
             </div>
         </div>
     </div>
@@ -396,6 +410,10 @@
             </div>
         </div>
     </div>
+
+    <!-- jsPDF and Autotable CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -445,6 +463,7 @@
         const productTypeRangeText = document.getElementById('productTypeRangeText');
         const lastWeekProductTypesDiv = document.getElementById('lastWeekProductTypes');
         const noLastWeekDataMessage = document.getElementById('noLastWeekData');
+        const downloadPdfBtn = document.getElementById('downloadPdfBtn'); // New PDF download button
 
         const remainingModal = document.getElementById('remainingModal');
         const modalMessage = document.getElementById('modalMessage');
@@ -461,6 +480,7 @@
         const noSavedPlansMessage = document.getElementById('noSavedPlansMessage');
 
         let productCount = 0; // To keep track of product blocks
+        let currentProductRangeData = []; // Store the full product data for the currently displayed range for PDF
 
         // --- Firebase Initialization and Auth ---
         window.onload = async () => {
@@ -522,10 +542,9 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Calculates the total cost for a single ingredient based on its weight, price, and product quantity
-        function calculateIngredientCost(ingredientWeight, ingredientPrice, productTotalQuantity) {
-            // Assuming Ingredients Price is the cost of the Ingredients Weight provided for ONE product unit.
-            // So if 500g flour costs ৳1 for ONE pizza, and you make 10 pizzas, it's 10 * ৳1.
+        // Calculates the total cost for a single ingredient based on its price per unit of product
+        function calculateIngredientCost(ingredientPrice, productTotalQuantity) {
+            // Assuming Ingredient Price is the cost of the ingredient for ONE product unit.
             return (parseFloat(ingredientPrice) || 0) * (parseFloat(productTotalQuantity) || 0);
         }
 
@@ -535,13 +554,14 @@
             // Iterate over each product block
             productsContainer.querySelectorAll('.product-block').forEach(productBlock => {
                 const productTotalQuantity = productBlock.querySelector('[name="productTotalQuantity"]').value;
+                let productUnitCost = 0; // Cost for one unit of this product based on its ingredients
 
                 // Iterate over each ingredient row within the product block
                 productBlock.querySelectorAll('.ingredient-row').forEach(ingredientRow => {
-                    const ingredientPrice = ingredientRow.querySelector('[name="ingredientPrice"]').value; // Only price is needed for total product cost calculation, weight is for quantity calculation
-
-                    totalCost += calculateIngredientCost(1, ingredientPrice, productTotalQuantity); // Cost per product unit * total quantity
+                    const ingredientPrice = ingredientRow.querySelector('[name="ingredientPrice"]').value;
+                    productUnitCost += (parseFloat(ingredientPrice) || 0); // Sum up ingredient prices for one product unit
                 });
+                totalCost += (productUnitCost * (parseFloat(productTotalQuantity) || 0));
             });
             totalWeeklyCostSpan.textContent = totalCost.toFixed(2);
         }
@@ -587,6 +607,7 @@
 
             // Add event listeners for cost calculation
             ingredientRow.querySelector('[name="ingredientPrice"]').addEventListener('input', calculateTotalWeeklyCost);
+            ingredientRow.querySelector('[name="ingredientWeight"]').addEventListener('input', calculateTotalWeeklyCost); // Added this to trigger recalculation if weight changes, although for 'price per unit of product' it's not directly used in total cost.
             ingredientRow.querySelector('.remove-ingredient-btn').addEventListener('click', () => {
                 ingredientRow.remove();
                 calculateTotalWeeklyCost();
@@ -682,6 +703,8 @@
             }
 
             const productsData = [];
+            let overallTotalCost = 0; // Initialize overall total cost
+
             productsContainer.querySelectorAll('.product-block').forEach(productBlock => {
                 const productName = productBlock.querySelector('[name="productName"]').value;
                 const totalQuantity = parseInt(productBlock.querySelector('[name="productTotalQuantity"]').value);
@@ -707,12 +730,15 @@
                     }
                 });
 
+                const productTotalCost = productUnitCost * totalQuantity; // Total cost for this specific product batch
+                overallTotalCost += productTotalCost; // Add to overall total cost
+
                 productsData.push({
                     productName,
                     totalQuantity,
                     ingredients,
                     productUnitCost: productUnitCost, // Store cost for one unit of product
-                    productTotalCost: productUnitCost * totalQuantity // Total cost for this specific product batch
+                    productTotalCost: productTotalCost
                 });
             });
 
@@ -730,7 +756,7 @@
                     startDate: new Date(startDate),
                     endDate: new Date(endDate),
                     products: productsData,
-                    totalCost: parseFloat(totalWeeklyCostSpan.textContent),
+                    totalCost: overallTotalCost, // Use the calculated overallTotalCost
                     timestamp: new Date()
                 });
 
@@ -927,6 +953,7 @@
             // Clear previous content and show loading or "no data" message
             lastWeekProductTypesDiv.innerHTML = `<p class="text-gray-500 text-center">ডেটা লোড হচ্ছে... (Loading data...)</p>`;
             noLastWeekDataMessage.classList.add('hidden'); // Hide the general no data message initially
+            downloadPdfBtn.classList.add('hidden'); // Hide PDF button until data is loaded
 
             const q = query(
                 collection(db, `artifacts/${appId}/users/${userId}/weekly_plans`),
@@ -938,6 +965,7 @@
                 lastWeekProductTypesDiv.innerHTML = ''; // Clear previous content
                 const productNames = new Set();
                 let hasData = false;
+                currentProductRangeData = []; // Reset stored data
 
                 snapshot.forEach((docSnap) => {
                     const data = docSnap.data();
@@ -948,6 +976,7 @@
                                 hasData = true;
                             }
                         });
+                        currentProductRangeData.push(...data.products); // Store all products from all plans in this range
                     }
                 });
 
@@ -959,13 +988,16 @@
                         p.textContent = name;
                         lastWeekProductTypesDiv.appendChild(p);
                     });
+                    downloadPdfBtn.classList.remove('hidden'); // Show PDF button if data exists
                 } else {
                     noLastWeekDataMessage.classList.remove('hidden');
                     lastWeekProductTypesDiv.innerHTML = ''; // Ensure no items are shown if empty
+                    downloadPdfBtn.classList.add('hidden'); // Hide PDF button if no data
                 }
             }, (error) => {
                 console.error("পণ্যের ধরণ ফেচ করতে ত্রুটি:", error);
                 lastWeekProductTypesDiv.innerHTML = `<p class="text-red-500 text-center">ডেটা লোড করতে ত্রুটি। (Error loading data.)</p>`;
+                downloadPdfBtn.classList.add('hidden'); // Hide PDF button on error
             });
         }
 
@@ -1023,38 +1055,28 @@
             try {
                 const querySnapshot = await getDocs(q); // Use getDocs for a one-time fetch for the modal
 
-                const productSummaries = {};
+                const productsToShow = [];
 
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
                     if (data.products && Array.isArray(data.products)) {
+                        // Aggregate quantities and costs for products with the same name across different plans
                         data.products.forEach(product => {
-                            const productName = product.productName;
-                            const totalQuantity = product.totalQuantity || 0;
-                            const productTotalCost = product.productTotalCost || 0; // Use productTotalCost directly from saved data
-
-                            let totalIngredientQuantity = 0;
-                            if (product.ingredients && Array.isArray(product.ingredients)) {
-                                product.ingredients.forEach(ingredient => {
-                                    totalIngredientQuantity += (ingredient.weight || 0); // Sum of individual ingredient weights
-                                });
+                            const existingProduct = productsToShow.find(p => p.productName === product.productName);
+                            if (existingProduct) {
+                                existingProduct.totalQuantity += (product.totalQuantity || 0);
+                                existingProduct.productTotalCost += (product.productTotalCost || 0);
+                                // For ingredients, we'll list them as they are defined per product,
+                                // not necessarily aggregate across products in this view.
+                                // If you need to aggregate ingredients across same named products, that's a separate logic.
+                            } else {
+                                productsToShow.push({ ...product }); // Add a copy of the product data
                             }
-
-                            if (!productSummaries[productName]) {
-                                productSummaries[productName] = {
-                                    totalQuantity: 0,
-                                    totalIngredientQuantity: 0, // This will be sum of (ingredient.weight * product.totalQuantity)
-                                    totalCost: 0
-                                };
-                            }
-                            productSummaries[productName].totalQuantity += totalQuantity;
-                            productSummaries[productName].totalIngredientQuantity += (totalIngredientQuantity * totalQuantity); // Aggregate total ingredient quantity for all units of this product
-                            productSummaries[productName].totalCost += productTotalCost;
                         });
                     }
                 });
 
-                if (Object.keys(productSummaries).length > 0) {
+                if (productsToShow.length > 0) {
                     noProductDetailsDataMessage.classList.add('hidden');
                     let tableHTML = `
                         <table class="min-w-full">
@@ -1062,24 +1084,32 @@
                                 <tr>
                                     <th>পণ্যের নাম (Product Name)</th>
                                     <th>মোট পণ্যের পরিমাণ (Total Product Quantity)</th>
-                                    <th>মোট উপাদানের পরিমাণ (Total Ingredient Quantity)</th>
                                     <th>মোট খরচ (Total Cost)</th>
+                                    <th>উপাদান সমূহ (Ingredients List)</th>
                                 </tr>
                             </thead>
                             <tbody>
                     `;
 
-                    for (const productName in productSummaries) {
-                        const summary = productSummaries[productName];
+                    productsToShow.forEach(product => {
+                        let ingredientsListHtml = '';
+                        if (product.ingredients && Array.isArray(product.ingredients) && product.ingredients.length > 0) {
+                            ingredientsListHtml = product.ingredients.map(ing =>
+                                `<div class="ingredient-list-item">${ing.itemName}: ${ing.weight} ${ing.unit} (৳${ing.price})</div>`
+                            ).join('');
+                        } else {
+                            ingredientsListHtml = `<div class="ingredient-list-item">কোনো উপাদান নেই। (No ingredients.)</div>`;
+                        }
+
                         tableHTML += `
                             <tr>
-                                <td>${productName}</td>
-                                <td>${summary.totalQuantity}</td>
-                                <td>${summary.totalIngredientQuantity.toFixed(2)}</td>
-                                <td>৳${summary.totalCost.toFixed(2)}</td>
+                                <td>${product.productName}</td>
+                                <td>${product.totalQuantity}</td>
+                                <td>৳${product.productTotalCost.toFixed(2)}</td>
+                                <td>${ingredientsListHtml}</td>
                             </tr>
                         `;
-                    }
+                    });
                     tableHTML += `</tbody></table>`;
                     productDetailsTableContainer.innerHTML = tableHTML;
                 } else {
@@ -1156,6 +1186,79 @@
                 savedWeeklyPlansList.innerHTML = `<p class="text-red-500 text-center">পরিকল্পনা লোড করতে ত্রুটি। (Error loading plans.)</p>`;
             });
         }
+
+        // --- PDF Generation Logic ---
+        downloadPdfBtn.addEventListener('click', async () => {
+            if (!currentProductRangeStartDate || !currentProductRangeEndDate) {
+                showCustomMessageBox('বার্তা (Message)', 'শপিং লিস্ট ডাউনলোড করতে একটি ডেট রেঞ্জ নির্বাচন করুন। (Please select a date range to download the shopping list.)', false);
+                return;
+            }
+
+            const doc = new jspdf.jsPDF();
+            const startStr = formatDate(currentProductRangeStartDate);
+            const endStr = formatDate(currentProductRangeEndDate);
+
+            doc.setFont('Inter', 'normal'); // Set a common font for PDF
+
+            doc.text(`শপিং লিস্ট (${startStr} - ${endStr})`, 14, 20); // Title for the PDF
+
+            const allIngredients = {}; // Consolidated ingredients for shopping list
+
+            // Aggregate ingredients from all products in the current range
+            // currentProductRangeData contains all product objects from all plans in the selected range
+            currentProductRangeData.forEach(product => {
+                const productQuantity = product.totalQuantity || 0;
+                product.ingredients.forEach(ingredient => {
+                    const itemName = ingredient.itemName.toLowerCase();
+                    const weight = parseFloat(ingredient.weight) || 0;
+                    const unit = ingredient.unit;
+
+                    // Create a unique key that combines item name and unit
+                    const key = `${itemName}-${unit}`;
+
+                    if (!allIngredients[key]) {
+                        allIngredients[key] = {
+                            itemName: ingredient.itemName,
+                            totalWeight: 0,
+                            unit: unit
+                        };
+                    }
+                    allIngredients[key].totalWeight += (weight * productQuantity); // Summing up total quantity per item
+                });
+            });
+
+            const tableRows = [];
+            for (const key in allIngredients) {
+                const item = allIngredients[key];
+                tableRows.push([item.itemName, `${item.totalWeight.toFixed(2)} ${item.unit}`]);
+            }
+
+            // Sort table rows alphabetically by item name
+            tableRows.sort((a, b) => a[0].localeCompare(b[0]));
+
+            if (tableRows.length > 0) {
+                doc.autoTable({
+                    head: [['উপাদানের নাম (Ingredient Name)', 'মোট পরিমাণ (Total Quantity)']],
+                    body: tableRows,
+                    startY: 30,
+                    styles: {
+                        font: 'Inter', // Use Inter font
+                        fontStyle: 'normal'
+                    },
+                    headStyles: {
+                        fillColor: [240, 244, 248], // Light blue-gray background for header
+                        textColor: [51, 65, 85], // Darker gray text
+                        fontStyle: 'bold'
+                    }
+                });
+
+                doc.save(`Shopping_List_${startStr}_to_${endStr}.pdf`);
+                showCustomMessageBox('বার্তা (Message)', 'শপিং লিস্ট PDF সফলভাবে ডাউনলোড হয়েছে। (Shopping list PDF downloaded successfully.)', false);
+            } else {
+                showCustomMessageBox('বার্তা (Message)', 'এই তারিখ পরিসরের জন্য কোনো শপিং লিস্ট ডেটা নেই। (No shopping list data for this date range.)', false);
+            }
+        });
+
     </script>
 </body>
 </html>
